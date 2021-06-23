@@ -1,0 +1,1641 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+    
+
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='/css/fonts-useso/fonts-useso.css' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+    <meta name="description" content=" 90后无名小黑 | 北京工业大学" />
+
+
+
+  <meta name="keywords" content="渗透测试,思想结晶,突破口," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="极客无影" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="版权声明：本文为CSDN博主「hrayha」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：https:&#x2F;&#x2F;blog.csdn.net&#x2F;hrayha&#x2F;article&#x2F;details&#x2F;104887524                                              注：之前发在乌云drops的一篇文章，汇总了自己对渗">
+<meta property="og:type" content="article">
+<meta property="og:title" content="渗透中寻找突破口的那些事（转载）">
+<meta property="og:url" content="https://functfan.github.io/posts/3841836989/index.html">
+<meta property="og:site_name" content="极客无影">
+<meta property="og:description" content="版权声明：本文为CSDN博主「hrayha」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：https:&#x2F;&#x2F;blog.csdn.net&#x2F;hrayha&#x2F;article&#x2F;details&#x2F;104887524                                              注：之前发在乌云drops的一篇文章，汇总了自己对渗">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315215908987.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220011661.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220101847.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220305728.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220404114.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220540942.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220709719.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220757616.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220852826.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315220939639.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221026174.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221109999.png">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221321733.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221417371.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221506823.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221624359.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221711644.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221842138.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315221924588.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2020031522200785.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200315222046747.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70">
+<meta property="article:published_time" content="2020-07-28T08:24:24.000Z">
+<meta property="article:modified_time" content="2020-07-28T08:32:01.501Z">
+<meta property="article:author" content="FunctFan">
+<meta property="article:tag" content="渗透测试">
+<meta property="article:tag" content="思想结晶">
+<meta property="article:tag" content="突破口">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20200315215908987.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+.pace .pace-progress {
+    background: #1E92FB; /*进度条颜色*/
+    height: 3px;
+}
+.pace .pace-progress-inner {
+     box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+}
+.pace .pace-activity {
+    border-top-color: #1E92FB;    /*上边框颜色*/
+    border-left-color: #1E92FB;    /*左边框颜色*/
+}
+</style>
+
+  <title> 渗透中寻找突破口的那些事（转载） | 极客无影 </title>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode" target="_blank" rel="noopener">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;">——善守者藏于九地之下，善攻者动于九天之上，故能自保而全胜也。</span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+	<a href="https://github.com/FunctFan" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                渗透中寻找突破口的那些事（转载）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+        
+
+            发表于
+            <time itemprop="dateCreated" datetime="2020-07-28T04:24:24-04:00" content="2020-07-28">
+              2020-07-28 04:24
+            </time>
+          </span>
+
+
+  <span class="post-updated">
+    &nbsp; | &nbsp; 更新于
+    <time itemprop="dateUpdated" datetime="2020-07-28T04:32:01-04:00" content="2020-07-28">
+      2020-07-28
+    </time>
+  </span>
+
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" itemprop="url" rel="index">
+                    <span itemprop="name">渗透测试</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+	<!--
+          
+            <span id="/posts/3841836989/"class="leancloud_visitors"  data-flag-title="渗透中寻找突破口的那些事（转载）">
+            &nbsp; | &nbsp;   
+            阅读次数
+            </span>
+          
+	-->
+
+<span title="文章字数">
+<br/>  文章字数:
+    2,135 字
+</span>
+
+
+<span title="阅读时长">
+ &nbsp; | &nbsp;阅读时长≈
+    9 分钟
+</span>
+
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><br>
+<blockquote class="blockquote-center">
+<p id="hitokoto"></p>
+<script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto" defer=""></script>
+</blockquote>
+
+<p>版权声明：本文为CSDN博主「hrayha」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。<br>原文链接：<a href="https://blog.csdn.net/hrayha/article/details/104887524" target="_blank" rel="noopener">https://blog.csdn.net/hrayha/article/details/104887524</a></p>
+<div class="htmledit_views" id="content_views">
+                                            <p>注：之前发在乌云drops的一篇文章，汇总了自己对渗透测试中寻找突破口的一些总结，现在乌云drops没有了，所以发在自己blog上。</p>
+
+<p> </p>
+
+<h2><a name="t0"></a><a name="t0"></a><strong><strong><strong>一、寻找目标</strong></strong></strong></h2>
+
+<p style="margin-left:0pt;"><strong><strong>在自己日常检测中以及观察他人检测思路发现前期收集信息具有很关键的作用，很多时候不需要对某种漏洞有很深的研究，如果前期收集了足够多的目标，只需要检测一些常见的高危漏洞即可有收获</strong></strong></p>
+
+<p style="margin-left:0pt;">常用思路</p>
+
+<p style="margin-left:0pt;">1.网段信息</p>
+
+<p style="margin-left:0pt;">1）通过子域名</p>
+
+<p style="margin-left:0pt;">如果存在域传送这种漏洞是最好的，没有的话一般就要暴破子域名了</p>
+
+<p style="margin-left:0pt;">我常用的软件为dnsmap，基本用法</p>
+
+<p style="margin-left:0pt;">./dnsmap target-domain.com -w 你的域名字典 -r 要保存结果文件的绝对路径，针对做了泛解析的域名可以使用-i 需忽略ip来避免误报，如对域名xxx.com的暴破过程中不存在域名都解析到1.1.1.1上，则使用命令为</p>
+
+<p style="margin-left:0pt;">./dnsmap xxx.com -w domain.txt -i 1.1.1.1 -r /tmp/result.txt</p>
+
+<p style="margin-left:0pt;">结果为如下格式:</p>
+
+<p style="margin-left:0pt;"><img alt="" height="546" src="https://img-blog.csdnimg.cn/20200315215908987.png" width="295"></p>
+
+<p style="margin-left:0pt;">其中默认编译的dnsmap存在一个问题，解决方法与其他使用方法请参考</p>
+
+<p style="margin-left:0pt;"><a href="http://pan.baidu.com/s/1nt5HMw5" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://pan.baidu.com/s/1nt5HMw5</u></span></u></a></p>
+
+<p style="margin-left:0pt;">大家可以在默认字典的基础上加一些如oa、zabbix、nagios、cacti、erp、sap、crm等等，不少企业都是这种命名方式</p>
+
+<p style="margin-left:0pt;">渗透的话一般会从oa，mail等重要业务网段寻找目标，如果发现有些管理后台的域名为</p>
+
+<p style="margin-left:0pt;">xx.admin.xxx.com这种，则可继续扩展，寻找admin.xxx.com下的三级域名</p>
+
+<p style="margin-left:0pt;">曾检测某站时无意发现一个ntp.nb.xxx.com的域名，进而暴破nb.xxx.com这个域名，结果如下</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220011661.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">其中zabbix.nb.xxx.com这个站点暴露到了外网，版本较低，使用zabbix的注入漏洞成功获取权限</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220101847.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">同时子域名也可通过搜索引擎语法site:xxx.com收集(不断增加条件，可获取的更多，如inurl,intitle等等)</p>
+
+<p>2）AS号</p>
+
+<p style="margin-left:0pt;">Jwhois使用方法</p>
+
+<p style="margin-left:0pt;">yum install -y jwhois安装</p>
+
+<p style="margin-left:0pt;">执行whois -h asn.shadowserver.org origin 1.1.1.1可获得ip所在企业的AS号</p>
+
+<p style="margin-left:0pt;">继续执行whois -h asn.shadowserver.org prefix as号即可获得该as号对应网段</p>
+
+<p style="margin-left:0pt;">注：一般只有大企业才会有as号，并且一个企业可能会有多个as号</p>
+
+<p style="margin-left:0pt;">3）DNS</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220305728.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">4）spf记录</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220404114.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">如何判断cdn？</p>
+
+<p style="margin-left:0pt;">如果误把cdn的ip加到目标里会影响一些人工时间，如何判断cdn？最简单的方法是用多地ping功能</p>
+
+<p style="margin-left:0pt;"><a href="http://ping.chinaz.com/" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://ping.chinaz.com/</u></span></u></a></p>
+
+<p style="margin-left:0pt;"><u><span style="color:#0000ff;"><u><img alt="" src="https://img-blog.csdnimg.cn/20200315220540942.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></u></span></u></p>
+
+<p style="margin-left:0pt;">2.利用whatweb寻找web入口</p>
+
+<p style="margin-left:0pt;">使用方法</p>
+
+<p style="margin-left:0pt;">./whatweb 1.1.1.1/24 --log-brief=output_file（详细使用参考使用说明）</p>
+
+<p style="margin-left:0pt;">默认的话只识别80端口的，如果此时我们想识别下8080端口，再加上--url-suffix=”:8080”即可</p>
+
+<p style="margin-left:0pt;">可根据title，cms等信息寻找目标，一般把后台或者存在已知漏洞的系统作为目标，同时可寻找nginx低版本存在解析漏洞的站点，受影响版本为0.5全版本，0.6全版本，0.7&lt;=0.7.65，&lt; p&gt;
+
+</p><p style="margin-left:0pt;">0.8&lt;=0.8.37&lt; p&gt;
+
+</p><p style="margin-left:0pt;"><strong><strong>附上一则实例</strong></strong>：</p>
+
+<p style="margin-left:0pt;">在检测某企业时，whatweb批量识别指纹发现存在一台nginx版本比较低且存在解析漏洞的站点，首页为空白页，对目录结构暴破发现.bash_history文件</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220709719.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">操作历史中发现有打包文件且放在web目录下</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220757616.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">下载打包文件，内容如下</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315220852826.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">其中发现有log文件，且log文件会记录user-agent信息</p>
+
+<p style="margin-left:0pt;"><img alt="" height="106" src="https://img-blog.csdnimg.cn/20200315220939639.png" width="1053"></p>
+
+<p style="margin-left:0pt;">使用firefox插件User Agent Switcher更改user-agent信息</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221026174.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">一句话代码写入log文件后利用解析漏洞直接获取webshell</p>
+
+<p style="margin-left:0pt;"><img alt="" height="189" src="https://img-blog.csdnimg.cn/20200315221109999.png" width="583"></p>
+
+<p>3.利用nmap寻找可利用服务</p>
+
+<p style="margin-left:0pt;">详细用法参考使用手册，个人常用命令为（-P0参数视情况添加，如果没有禁ping可以不加，提升速度）</p>
+
+<p style="margin-left:0pt;">./nmap -sT -sV 1.1.1.1/24 -P0 -oN /tmp/port_result.txt --open</p>
+
+<p style="margin-left:0pt;"> </p>
+
+<p style="margin-left:0pt;">Ip较少的情况下可以扫全端口以及一些基本信息</p>
+
+<p style="margin-left:0pt;">./nmap -sT -sV -p 1-65535 1.1.1.1 -P0 -A</p>
+
+<p style="margin-left:0pt;"> </p>
+
+<p style="margin-left:0pt;">利用nmap可以发现一些非80/443/8080这种常见端口上的web以及一些容易出问题的端口如</p>
+
+<p style="margin-left:0pt;">873(rsync无验证)/21(ftp匿名账户)/11211(memcache无验证)/27017（mangodb无验证）等，碰到不认识的服务别急着放弃，去exploit-db等站点搜一下是否存在已知漏洞吧，说不准直接找到个RCE呢(很多时候我也会在乌云search一下，搜到的话就是实际例子，看着更直白)</p>
+
+<p style="margin-left:0pt;"> </p>
+
+<p>4.利用搜索引擎寻找后台或重要系统</p>
+
+<p style="margin-left:0pt;">常用搜索语法为site:xxx.com inurl:login</p>
+
+<p style="margin-left:0pt;">Inurl的值可以自由变换，常用的包括admin、manage或者使用intitle:找管理、登录之类的关键字，有些站点出来的结果可能多数为同一站点下的误报，比如博客类的，问问类的，可使用-来减少误报，比如google中搜索site:baidu.com inurl:login -zhidao就可以在结果中去除zhidao相关的结果，百度可输入site:baidu.com inurl:login -site:zhidao.baidu.com</p>
+
+<p style="margin-left:0pt;">实例参考:http://www.wooyun.org/bugs/wooyun-2010-026581</p>
+
+<p style="margin-left:0pt;"> </p>
+
+<p>5.搞一个精简的路径字典</p>
+
+<p style="margin-left:0pt;">我们可以把容易出问题且危害比较高的常见路径做成一个精简的小字典，针对之前收集的域名去遍历，比如/invoker/JMXInvokerServlet、wwwroot.zip这种，发现的话很大几率可以搞到权限</p>
+
+<h2><a name="t1"></a><a name="t1"></a><strong><strong><strong>二、利用</strong></strong></strong></h2>
+
+<p style="margin-left:0pt;"><span style="color:#454545;">这里列出几个常见的系统利用方法</span></p>
+
+<h3><a name="t2"></a><a name="t2"></a><strong><strong><strong>后台</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">当前面的过程中发现后台或者重要系统时，一般会进行如下几种检测</p>
+
+<ol><li>awvs综合扫描（经常有意外发现）</li>
+    <li>目录结构暴破</li>
+    <li>口令暴破（admin不行的时候，不一定是密码不对，很多时候是用户名不对，尝试想到的可获取用户名的一切方法，如翻翻js、css文件，html源码注释内容，或者.svn目录下的信息泄露等，密码可针对系统名称及域名等信息做一些变形加到字典中）</li>
+    <li>Html源码、js等文件获取信息（有些开发者会把一些管理地址以注释形式放到html源码中，管理的接口地址写在js中，运气好的话可以直接越权访问）</li>
+    <li>参数值暴破（一些框架写的后台登陆页面可能是这种格式xx.com/?c=login,日常可以收集一些常见的参数值，如index、main、upload、edit、adduser等、运气好的话可以直接越权操作）</li>
+</ol><h3><a name="t3"></a><a name="t3"></a><strong><strong><strong>axis2</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">文件包含：</p>
+
+<p style="margin-left:0pt;"><a href="http://www.thomas-bayer.com/axis2/services/listServices" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>www.xxx.com/axis2/services/listServices</u></span></u></a> 查看所有services</p>
+
+<p style="margin-left:0pt;"><a href="http://www.thomas-bayer.com/axis2/services/Version?xsd=../conf/axis2.xml" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>www.xxx.com/axis2/services/xxxxx?xsd=../conf/axis2.xml</u></span></u></a>  xxxxx替换任意服务均可，读取axis2配置文件获取后台账户</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221321733.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;"><a href="http://www.thomas-bayer.com/axis2/axis2-admin/" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>www.xxx.com/axis2/axis2-admin/</u></span></u></a>    登陆管理后台</p>
+
+<p style="margin-left:0pt;">后台部署文件代码执行：</p>
+
+<p style="margin-left:0pt;">使用metasploit</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221417371.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<h3><a name="t4"></a><a name="t4"></a><strong><strong><strong>Resin</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">文件读取：</p>
+
+<p style="margin-left:0pt;"><a href="http://www.xxx.com/resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=/etc/passwd" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://www.xxx.com/resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=/etc/passwd</u></span></u></a></p>
+
+<p style="margin-left:0pt;"><u><span style="color:#0000ff;"><u><img alt="" src="https://img-blog.csdnimg.cn/20200315221506823.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></u></span></u></p>
+
+<p style="margin-left:0pt;">也可以通过</p>
+
+<p style="margin-left:0pt;"><a href="http://www.xxx.com/resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=/etc/passwd" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://www.xxx.com/resin-doc/resource/tutorial/jndi-appconfig/test?inputFile=h</u></span></u></a>ttp://1.1.1.1</p>
+
+<p style="margin-left:0pt;">实现SSRF</p>
+
+<h3><a name="t5"></a><a name="t5"></a><strong><strong><strong>solr敏感信息泄漏</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;"><a href="http://420chan.org:8080/solr/admin/file/?file=solrconfig.xml" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://xxx.org:8080/solr/admin/file/?file=solrconfig.xml</u></span></u></a></p>
+
+<p style="margin-left:0pt;">搜索xml文件，找到data-import.xml</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221624359.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">访问 <a href="http://420chan.org:8080/solr/admin/file/?file=data-import.xml" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://</u></span></u><u><span style="color:#0000ff;"><u>xxx</u></span></u><u><span style="color:#0000ff;"><u>.org:8080/solr/admin/file/?file=data-import.xml</u></span></u></a> 获取数据库密码</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221711644.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<h3><a name="t6"></a><a name="t6"></a><strong><strong><strong>Hudson（jenkins类似）</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">参考http://www.wooyun.org/bugs/wooyun-2010-018339</p>
+
+<h3><a name="t7"></a><a name="t7"></a><strong><strong><strong>Zenoss</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">Google关键字：intitle:"Zenoss Login"</p>
+
+<p style="margin-left:0pt;">默认口令admin/zenoss</p>
+
+<p style="margin-left:0pt;">利用方法参考http://www.wooyun.org/bugs/wooyun-2010-019917</p>
+
+<h3><a name="t8"></a><a name="t8"></a><strong><strong><strong>Zabbix</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">后台:http://www.xxx.com/zabbix</p>
+
+<p style="margin-left:0pt;">默认密码:admin/zabbix</p>
+
+<p style="margin-left:0pt;">Google:inurl:zabbix/dashboard.php</p>
+
+<p style="margin-left:0pt;">利用方法参考http://www.wooyun.org/bugs/wooyun-2013-036277</p>
+
+<p style="margin-left:0pt;">另外这个zabbix注入的也很多都存在http://drops.wooyun.org/papers/680</p>
+
+<h3><a name="t9"></a><a name="t9"></a><strong><strong><strong>Cacti</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">默认登陆路径www.xxx.com/cacti/index.php</p>
+
+<p style="margin-left:0pt;">默认密码admin/admin</p>
+
+<p style="margin-left:0pt;">利用方法参考http://www.wooyun.org/bugs/wooyun-2010-02674</p>
+
+<h3><a name="t10"></a><a name="t10"></a><strong><strong><strong>Splunk</strong></strong></strong></h3>
+
+<p style="margin-left:0pt;">默认后台地址:</p>
+
+<p style="margin-left:0pt;"><a href="http://xxx.com:8000/zh-CN/account/login?return_to=%2Fzh-CN%2F" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://xxx.com:8000/zh-CN/account/login?return_to=%2Fzh-CN%2F</u></span></u></a></p>
+
+<p style="margin-left:0pt;"><u><span style="color:#0000ff;"><u><img alt="" src="https://img-blog.csdnimg.cn/20200315221842138.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></u></span></u></p>
+
+<p style="margin-left:0pt;">默认账户admin/changeme  默认端口8000</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315221924588.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">管理器-应用-从文件安装应用处可获得shell</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/2020031522200785.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<p style="margin-left:0pt;">msf有利用模块</p>
+
+<p style="margin-left:0pt;">exploit/multi/http/splunk_upload_app_exec</p>
+
+<p style="margin-left:0pt;"><img alt="" src="https://img-blog.csdnimg.cn/20200315222046747.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2hyYXloYQ==,size_16,color_FFFFFF,t_70"></p>
+
+<h2><a name="t11"></a><a name="t11"></a><strong><strong><strong>结尾</strong></strong></strong></h2>
+
+<p style="margin-left:0pt;">推荐两篇乌云综合性介绍文章</p>
+
+<p style="margin-left:0pt;">1.从乌云看运维安全那点事儿</p>
+
+<p style="margin-left:0pt;"><a href="http://drops.wooyun.org/papers/410" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://drops.wooyun.org/papers/410</u></span></u></a></p>
+
+<p style="margin-left:0pt;">2.攻击JavaWeb应用[7]-Server篇[1]</p>
+
+<p style="margin-left:0pt;"><a href="http://drops.wooyun.org/tips/604" target="_blank" rel="nofollow noopener"><u><span style="color:#0000ff;"><u>http://drops.wooyun.org/tips/604</u></span></u></a></p>
+
+<p style="margin-left:0pt;"> </p>
+<!--=0.8.37<--><p></p><!--=0.7.65，<--><p></p></div>
+
+<!--
+<div class="poem-wrap">
+  <div class="poem-border poem-left"></div>
+  <div class="poem-border poem-right"></div>
+    <h1>念两句诗</h1>
+    <p id="poem">挑选中...</p>
+    <p id="info">
+
+  <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    jinrishici.load(function(result) {
+      poem.innerHTML = result.data.content
+      info.innerHTML = '【' + result.data.origin.dynasty + '】' + result.data.origin.author + '《' + result.data.origin.title + '》'
+      document.getElementById("poem").value(poem);
+      document.getElementById("info").value(info);  
+  });
+  </script>
+</div>
+-->
+
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script></span>
+      
+    </div>
+
+    <div> <div>
+ 
+<div style="text-align:center;color:#bfbfbf;font-size:16px;"> 
+<span>-------- 本文结束 </span> 
+<i class="fa fa-paw"></i> 
+<span> 感谢阅读 --------
+</span> 
+</div> 
+
+</div>
+ </div>
+    <div>
+        
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+
+  <p><span>本文标题:</span>渗透中寻找突破口的那些事（转载）</a></p>
+  <p><span>文章作者:</span>FunctFan</a></p>
+  <p><span>发布时间:</span>2020年07月28日 - 04:24:24</p>
+  <p><span>最后更新:</span>2020年07月28日 - 04:32:01</p>
+  <p><span>原始链接:</span><a href="/posts/3841836989/" title="渗透中寻找突破口的那些事（转载）">https://functfan.github.io/posts/3841836989/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/3841836989/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+
+        
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag"><i class="fa fa-tag"></i>渗透测试</a>
+          
+            <a href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag"><i class="fa fa-tag"></i>思想结晶</a>
+          
+            <a href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag"><i class="fa fa-tag"></i>突破口</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2639883394/" rel="prev">
+                <i class="fa fa-chevron-left"></i> 使用Burp插件Java-Deserialization-Scanner检测java反序列化漏洞
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/4044431530/" rel="next">
+                如何在IDEA环境中调试Tomcat源代码 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel >
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/timg_wps.png" alt="FunctFan" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">FunctFan</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"> 90后无名小黑 | 北京工业大学</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://blog.csdn.net/RisingFan" target="_blank">
+                  <i class="fa fa-csdn"></i> CSDN
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://functfan.gitbook.io/" target="_blank">
+                  <i class="fa fa-gitbook"></i> GitBook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://bleke.top/" target="_blank">
+                  <i class="fa fa-personpage"></i> PersonPage
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+	<div style="">
+  <canvas id="canvas" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+</div>
+<script>
+(function(){
+
+   var digit=
+    [
+        [
+            [0,0,1,1,1,0,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,0,1,1,0],
+            [0,0,1,1,1,0,0]
+        ],//0
+        [
+            [0,0,0,1,1,0,0],
+            [0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [1,1,1,1,1,1,1]
+        ],//1
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,1,1],
+            [1,1,1,1,1,1,1]
+        ],//2
+        [
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//3
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,1]
+        ],//4
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,1,1,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//5
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//6
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0]
+        ],//7
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//8
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,1,1,0,0,0,0]
+        ],//9
+        [
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0]
+        ]//:
+    ];
+
+var canvas = document.getElementById('canvas');
+
+if(canvas.getContext){
+    var cxt = canvas.getContext('2d');
+    //声明canvas的宽高
+    var H = 100,W = 700;
+    canvas.height = H;
+    canvas.width = W;
+    cxt.fillStyle = '#555555';
+    cxt.fillRect(10,10,50,50);
+
+    //存储时间数据
+    var data = [];
+    //存储运动的小球
+    var balls = [];
+    //设置粒子半径
+    var R = canvas.height/20-1;
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+    })();
+
+    /*生成点阵数字*/
+    function renderDigit(index,num){
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index + j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,0,2*Math.PI);
+                    cxt.closePath();
+                    cxt.fill();
+                }
+            }
+        }
+    }
+
+    /*更新时钟*/
+    function updateDigitTime(){
+        var changeNumArray = [];
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        var NewData = [];
+        NewData.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+        for(var i = data.length-1; i >=0 ; i--){
+            //时间发生变化
+            if(NewData[i] !== data[i]){
+                //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+                changeNumArray.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        }
+        //增加小球
+        for(var i = 0; i< changeNumArray.length; i++){
+            addBalls.apply(this,changeNumArray[i].split('_'));
+        }
+        data = NewData.concat();
+    }
+
+    /*更新小球状态*/
+    function updateBalls(){
+        for(var i = 0; i < balls.length; i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x > W + R || balls[i].y > H + R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    /*增加要运动的小球*/
+    function addBalls(index,num){
+        var numArray = [1,2,3];
+        var colorArray =  ["#3BE","#09C","#A6C","#93C","#9C0","#690","#FB3","#F80","#F44","#C00"];
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    var ball = {
+                        x:14*(R+2)*index + j*2*(R+1)+(R+1),
+                        y:i*2*(R+1)+(R+1),
+                        stepX:Math.floor(Math.random() * 4 -2),
+                        stepY:-2*numArray[Math.floor(Math.random()*numArray.length)],
+                        color:colorArray[Math.floor(Math.random()*colorArray.length)],
+                        disY:1
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+
+    /*渲染*/
+    function render(){
+        //重置画布宽度，达到清空画布的效果
+        canvas.height = 100;
+        //渲染时钟
+        for(var i = 0; i < data.length; i++){
+            renderDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i = 0; i < balls.length; i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,0,2*Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+
+    clearInterval(oTimer);
+    var oTimer = setInterval(function(){
+        //更新时钟
+        updateDigitTime();
+        //更新小球状态
+        updateBalls();
+        //渲染
+        render();
+    },50);
+}
+
+})();
+</script>
+
+
+	
+	<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+	<div class="widget-wrap">
+	    
+	    <div id="myCanvasContainer" class="widget tagcloud">
+	        <canvas width="240" height="240" id="resCanvas" style="width=100%">
+	            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/2019CTF/" rel="tag">2019CTF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/2020%E5%B9%B44%E6%9C%884%E6%97%A5/" rel="tag">2020年4月4日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM%E7%AE%97%E6%B3%95/" rel="tag">ACM算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ApacheDubbo/" rel="tag">ApacheDubbo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bjut-Search2016/" rel="tag">Bjut_Search2016</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-4852-Weblogic-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">CVE-2015-4852,Weblogic,反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag">CVE-2020-2023/2024/2025/2026</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codeforces164/" rel="tag">Codeforces164</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CommonsBeanUtils/" rel="tag">CommonsBeanUtils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultServletm/" rel="tag">DefaultServletm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gopher/" rel="tag">Gopher</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JspServlet/" rel="tag">JspServlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag">KataContainers容器</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RMI/" rel="tag">RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSRF/" rel="tag">SSRF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TPM%E6%90%AD%E5%BB%BA/" rel="tag">TPM搭建</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/XXE%E6%BC%8F%E6%B4%9E/" rel="tag">XXE漏洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dc-1/" rel="tag">dc-1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/h4x0r/" rel="tag">h4x0r</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">java反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/requestURI/" rel="tag">requestURI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vulhub/" rel="tag">vulhub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-T3-JNDI-RMI/" rel="tag">weblogic,T3,JNDI,RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E8%B0%83%E8%AF%95-%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E-%E7%B3%BB%E5%88%97%E6%80%BB%E7%BB%93/" rel="tag">weblogic,基础知识,漏洞分析,调试,历史漏洞,系列总结</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" rel="tag">weblogic,环境部署,远程调试</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">weblogic,补丁分析,序列化与反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E5%9B%BD%E5%93%80%E6%82%BC%E6%97%A5/" rel="tag">全国哀悼日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E9%9D%A2%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" rel="tag">全面大学生信息安全竞赛</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E4%BF%A1%E8%AE%A1%E7%AE%97/" rel="tag">可信计算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag">容器逃逸</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%88%A9%E5%99%A8/" rel="tag">工具利器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag">思想结晶</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag">技术基础</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%B0%E5%86%A0%E8%82%BA%E7%82%8E/" rel="tag">新冠肺炎</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" rel="tag">框架基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%85%E6%98%8E%E8%8A%82/" rel="tag">清明节</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">源代码审计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag">漏洞复现</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" rel="tag">漏洞挖掘</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag">突破口</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%AB%99%E5%85%B3%E9%94%AE%E5%AD%97-%E5%8F%8D%E5%BC%B9shell/" rel="tag">网站关键字,反弹shell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag">网络穿透</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag">透视攻击</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%B6%E6%9C%BA%E5%AE%9E%E6%88%98/" rel="tag">靶机实战</a><span class="tag-list-count">1</span></li></ul>
+	        </canvas>
+	    </div>
+	</div>
+	
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#content_views"><span class="nav-text">一、寻找目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#content_views"><span class="nav-text">二、利用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">后台</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">axis2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Resin</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">solr敏感信息泄漏</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Hudson（jenkins类似）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Zenoss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Zabbix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Cacti</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#content_views"><span class="nav-text">Splunk</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#content_views"><span class="nav-text">结尾</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+    </div>
+  </aside>
+
+
+        
+
+
+
+
+
+<script type="text/javascript" src="//cdn.jsdelivr.net/gh/theme-next/theme-next-three@latest/three-waves.min.js"></script>
+
+
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FunctFan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank" rel="noopener">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+
+
+
+
+  <script async src="/js/cursor/fireworks.js"></script>
+
+
+<!--彩带2.自动飘动-->
+
+    <!-- <script src="https://g.joyinshare.com/hc/piao.js" type="text/javascript"></script> -->
+    <script type="text/javascript" src="/js/ribbon_flow.js"></script>
+
+
+
+
+
+
+
+
+
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
+
+
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+
+
+</body>
+</html>

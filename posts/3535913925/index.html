@@ -1,0 +1,1436 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+    
+
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='/css/fonts-useso/fonts-useso.css' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+    <meta name="description" content=" 90后无名小黑 | 北京工业大学" />
+
+
+
+  <meta name="keywords" content="漏洞复现,KataContainers容器,CVE-2020-2023/2024/2025/2026,容器逃逸," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="极客无影" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="逃逸复现环境准备  我们需要准备一套存在前述三个漏洞的Kata Containers环境，并配置其使用Cloud Hypervisor作为虚拟机管理程序。这里，笔者采用VMWare + Ubuntu18.04 + Docker + Kata Containers 1.10.0作为测试环境。  首先，参照官方文档安装Docker[9]。接着，从Kata Containers官方Githu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KataContainers安全容器逃逸-CVE-2020-2023&#x2F;2024&#x2F;2025&#x2F;2026(转载下)">
+<meta property="og:url" content="https://functfan.github.io/posts/3535913925/index.html">
+<meta property="og:site_name" content="极客无影">
+<meta property="og:description" content="逃逸复现环境准备  我们需要准备一套存在前述三个漏洞的Kata Containers环境，并配置其使用Cloud Hypervisor作为虚拟机管理程序。这里，笔者采用VMWare + Ubuntu18.04 + Docker + Kata Containers 1.10.0作为测试环境。  首先，参照官方文档安装Docker[9]。接着，从Kata Containers官方Githu">
+<meta property="og:image" content="https://functfan.github.io/posts/3535913925/image-20210305165514398.png">
+<meta property="og:image" content="https://functfan.github.io/posts/3535913925/image-20210305170312929.png">
+<meta property="og:image" content="https://functfan.github.io/posts/3535913925/image-20210305171234660.png">
+<meta property="og:image" content="https://functfan.github.io/posts/3535913925/image-20210305171308143.png">
+<meta property="article:published_time" content="2021-03-05T08:12:56.000Z">
+<meta property="article:modified_time" content="2021-03-05T09:38:37.480Z">
+<meta property="article:author" content="FunctFan">
+<meta property="article:tag" content="漏洞复现">
+<meta property="article:tag" content="KataContainers容器">
+<meta property="article:tag" content="CVE-2020-2023&#x2F;2024&#x2F;2025&#x2F;2026">
+<meta property="article:tag" content="容器逃逸">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://functfan.github.io/posts/3535913925/image-20210305165514398.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+.pace .pace-progress {
+    background: #1E92FB; /*进度条颜色*/
+    height: 3px;
+}
+.pace .pace-progress-inner {
+     box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+}
+.pace .pace-activity {
+    border-top-color: #1E92FB;    /*上边框颜色*/
+    border-left-color: #1E92FB;    /*左边框颜色*/
+}
+</style>
+
+  <title> KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载下) | 极客无影 </title>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode" target="_blank" rel="noopener">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;">——善守者藏于九地之下，善攻者动于九天之上，故能自保而全胜也。</span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+	<a href="https://github.com/FunctFan" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载下)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+        
+
+            发表于
+            <time itemprop="dateCreated" datetime="2021-03-05T03:12:56-05:00" content="2021-03-05">
+              2021-03-05 03:12
+            </time>
+          </span>
+
+
+  <span class="post-updated">
+    &nbsp; | &nbsp; 更新于
+    <time itemprop="dateUpdated" datetime="2021-03-05T04:38:37-05:00" content="2021-03-05">
+      2021-03-05
+    </time>
+  </span>
+
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" itemprop="url" rel="index">
+                    <span itemprop="name">容器逃逸</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+	<!--
+          
+            <span id="/posts/3535913925/"class="leancloud_visitors"  data-flag-title="KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载下)">
+            &nbsp; | &nbsp;   
+            阅读次数
+            </span>
+          
+	-->
+
+<span title="文章字数">
+<br/>  文章字数:
+    2,946 字
+</span>
+
+
+<span title="阅读时长">
+ &nbsp; | &nbsp;阅读时长≈
+    12 分钟
+</span>
+
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><br>
+<blockquote class="blockquote-center">
+<p id="hitokoto"></p>
+<script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto" defer=""></script>
+</blockquote>
+
+<h3 id="逃逸复现"><a href="#逃逸复现" class="headerlink" title="逃逸复现"></a>逃逸复现</h3><p><strong>环境准备</strong> </p>
+<p>我们需要准备一套存在前述三个漏洞的Kata Containers环境，并配置其使用Cloud Hypervisor作为虚拟机管理程序。这里，笔者采用VMWare + Ubuntu18.04 + Docker + Kata Containers 1.10.0作为测试环境。 </p>
+<p>首先，参照官方文档安装Docker[9]。接着，从Kata Containers官方Github仓库[10]下载1.10.0版本的静态程序包kata-static-1.10.3-x86_64.tar.xz，下载后进行安装即可，具体可参考如下步骤（需要root权限）： </p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line">set -e -x</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载安装包（如果已经下载，此步可跳过）</span></span><br><span class="line"><span class="meta">#</span><span class="bash">wget https://github.com/kata-containers/runtime/releases/download/1.10.0/kata-static-1.10.0-x86_64.tar.xz</span></span><br><span class="line">tar xf kata-static-1.10.0-x86_64.tar.xz</span><br><span class="line">rm -rf /opt/kata</span><br><span class="line">mv ./opt/kata /opt</span><br><span class="line">rmdir ./opt</span><br><span class="line">rm -rf /etc/kata-containers</span><br><span class="line">cp -r /opt/kata/share/defaults/kata-containers /etc/</span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用Cloud Hypervisor作为虚拟机管理程序</span></span><br><span class="line">rm /etc/kata-containers/configuration.toml</span><br><span class="line">ln -s /etc/kata-containers/configuration-clh.toml /etc/kata-containers/configuration.toml</span><br><span class="line"><span class="meta">#</span><span class="bash"> 配置Docker</span></span><br><span class="line">mkdir -p /etc/docker/</span><br><span class="line">cat &lt;&lt; EOF &gt; /etc/docker/daemon.json</span><br><span class="line">{</span><br><span class="line">  "runtimes": {</span><br><span class="line">    "kata-runtime": {</span><br><span class="line">      "path": "/opt/kata/bin/kata-runtime"</span><br><span class="line">    },</span><br><span class="line">    "kata-clh": {</span><br><span class="line">      "path": "/opt/kata/bin/kata-clh"</span><br><span class="line">    },</span><br><span class="line">    "kata-qemu": {</span><br><span class="line">      "path": "/opt/kata/bin/kata-qemu"</span><br><span class="line">    }</span><br><span class="line">  },</span><br><span class="line">  "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn/"]</span><br><span class="line">}</span><br><span class="line">EOF</span><br><span class="line">mkdir -p /etc/systemd/system/docker.service.d/</span><br><span class="line">cat &lt;&lt; EOF &gt; /etc/systemd/system/docker.service.d/kata-containers.conf</span><br><span class="line">[Service]</span><br><span class="line">ExecStart=</span><br><span class="line">ExecStart=/usr/bin/dockerd -D --add-runtime kata-runtime=/opt/kata/bin/kata-runtime --add-runtime kata-clh=/opt/kata/bin/kata-clh --add-runtime kata-qemu=/opt/kata/bin/kata-qemu --default-runtime=kata-runtime</span><br><span class="line">EOF</span><br><span class="line"><span class="meta">#</span><span class="bash"> 重载配置&amp;重新启动Docker</span></span><br><span class="line">systemctl daemon-reload &amp;&amp; systemctl restart docker</span><br></pre></td></tr></tbody></table></figure>
+
+<p>安装完成。可以看一下Docker当前配置的runtime是否为Kata Containers：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root#</span><span class="bash"> docker info | grep <span class="string">'Runtime'</span></span></span><br><span class="line"> Runtimes: kata-runtime runc kata-clh kata-qemu</span><br><span class="line"> Default Runtime: kata-runtime</span><br></pre></td></tr></tbody></table></figure>
+
+<p>OK，再尝试使用Kata Containers + Cloud Hypervisor运行一个容器：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root#</span><span class="bash"> docker run --rm -it --runtime=<span class="string">"kata-clh"</span> ubuntu uname -a</span></span><br><span class="line">Linux 1998641bad3f 5.3.0-rc3 #1 SMP Thu Jan 16 01:53:44 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到，容器使用的内核版本为5.3.0-rc3，而我们测试环境宿主机的内核版本为4.15.0-117-generic：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root#</span><span class="bash"> uname -a</span></span><br><span class="line">Linux matrix 4.15.0-117-generic #118-Ubuntu SMP Fri Sep 4 20:02:41 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux</span><br></pre></td></tr></tbody></table></figure>
+
+<p>这说明我们的环境搭建成功。 </p>
+<p>我们想要模拟的场景如下： </p>
+<p>目标环境是一个提供容器服务（Container-as-a-Service）的云虚拟化平台，使用Kata Containers作为容器运行时。该容器服务的用户能够上传自己的镜像并在云平台上运行一个或多个容器。攻击者首先上传恶意镜像，启动一个容器，污染Kata Containers使用的虚拟机镜像；然后再次启动一个恶意容器，此时，Kata Containers使用被污染的虚拟机镜像创建出一个恶意虚拟机，它会欺骗Kata Containers运行时组件（kata-runtime）将恶意容器根文件系统挂载到云平台宿主机上/bin目录下。管理员在使用/bin目录下的工具时触发反弹shell，攻击者收到反弹shell，实现逃逸。 </p>
+<p><strong>漏洞利用</strong> </p>
+<p>下图更清晰地展示了整个逃逸流程：</p>
+<p><img src="/posts/3535913925/image-20210305165514398.png" alt="image-20210305165514398"></p>
+<p>下面，我们就来逐步看一下。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>1. 构建恶意kata-agent</strong></p>
+<p>结合前面漏洞分析部分可知，要利用好CVE-2020-2026漏洞，就需要在kata-agent的gRPC服务器上做文章。 </p>
+<p>首先拿到kata-agent的源码并切换到1.10.0版本：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p $GOPATH/src/github.com/kata-containers/</span><br><span class="line">cd $GOPATH/src/github.com/kata-containers/</span><br><span class="line">git clone https://github.com/kata-containers/agent</span><br><span class="line">cd agent</span><br><span class="line">git checkout 1.10.0</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在grpc.go文件中，找到CreateSandobx函数，其中有一部分代码是用来将宿主机共享目录挂载到虚拟机中的：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mountList, err := addStorages(ctx, req.Storages, a.sandbox)</span><br><span class="line">if err != nil {</span><br><span class="line">    return emptyResp, err</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">a.sandbox.mounts = mountList</span><br></pre></td></tr></tbody></table></figure>
+
+<p>共享目录挂载后，我们才能在里边创建符号链接。因此，在上述代码后面添加创建符号链接的代码即可。 </p>
+<p>这样一来，当kata-runtime向kata-agent发出CreateSandbox指令时，kata-agent将在共享目录内的rootfs位置创建一个符号链接，指向/bin；此后，当kata-runtime向该位置绑定挂载容器根文件系统时，实际的挂载路径将是宿主机的/bin。 </p>
+<p>除此之外，我们还需要避免kata-runtime在容器生命周期结束时从/bin卸载容器根文件系统。因此，我们需要想办法在卸载操作之前把共享目录中的rootfs位置重新替换为一个正常的目录。我们注意到，kata-runtime在挂载容器镜像后，还会向kata-agent发出CreateContainer指令，因此，我们可以在kata-agent源码grpc.go文件中的CreateContainer函数内添加删除符号链接、创建正常目录的操作，避免/bin挂载点被卸载。 </p>
+<p>至此，恶意kata-agent编写完成，make构建一下即可。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>2. 构建恶意镜像kata-malware-image</strong></p>
+<p>从上面的流程图中可以发现，攻击者实际上需要先后创建两个恶意容器。为简单起见，我们只构造一个恶意镜像，它需要完成两个任务： </p>
+<ol>
+<li>在第一个容器启动时，利用CVE-2020-2023和CVE-2020-2025漏洞，将底层虚拟机块设备中的kata-agent替换为攻击者准备好的恶意文件；</li>
+<li>第二个容器本身不需要做任何事情，但此时由于CVE-2020-2026漏洞的存在，kata-runtime会将容器的根文件系统挂载到宿主机上指定位置（由恶意kata-agent创建的符号链接指定）。因此，镜像中还需要包含反弹shell需要的程序。 </li>
+</ol>
+<p>第二个任务比较简单，我们只需要在恶意容器的根目录下准备反弹shell程序（建议用C语言编写，另外，网络上有很多反弹shell源码）即可。由于是覆盖到/bin，因此我们可以考虑以/bin下的一些常用命令为反弹shell命名，例如ls等。另外，假如反弹shell程序依赖bash等系统自带shell，那么我们也需要在镜像中准备——一旦/bin被覆盖，/bin/bash及一系列其他shell就不可用了。 </p>
+<p>第一个任务则稍微复杂一些，需要将上一步中构建好的恶意kata-agent写入底层虚拟机块设备中。我们可以利用现成工具「debugfs」来达到目的。 </p>
+<p>如「漏洞分析」部分所述，在获取设备号后，直接使用mknod创建设备文件： </p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod --mode 0600 /dev/guest_hd b 254 1</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接着，就可以用debugfs打开该设备进行操作了（利用漏洞CVE-2020-2023）。默认情况下，直接执行debugfs会进入交互式界面。我们也可以借助它的-f参数，以文件形式给出操作指令。具体操作如下：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/sbin/debugfs -w /dev/guest_hd</span><br><span class="line"><span class="meta">#</span><span class="bash"> 以下在debugfs的交互命令行中执行</span></span><br><span class="line">cd /usr/bin</span><br><span class="line">rm kata-agent</span><br><span class="line">write /evil-kata-agent kata-agent</span><br><span class="line">close -a</span><br></pre></td></tr></tbody></table></figure>
+
+<p>由于CVE-2020-2025漏洞的存在，上述操作会直接将Kata Containers使用的虚拟机镜像中的kata-agent替换为恶意程序，任务完成。 </p>
+<p>将上述步骤制作成容器镜像即可。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>3. 向目标环境上传恶意镜像</strong></p>
+<p>我们模拟的是针对提供容器服务的云平台场景的攻击，云平台一般会提供上传或拉取镜像的方法。为简单起见，笔者直接在目标主机上构建恶意镜像。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>4. 发起攻击</strong></p>
+<p>万事俱备，只欠东风。攻击者现在只需要做三件事： </p>
+<ol>
+<li>开启一个监听反弹shell的进程；</li>
+<li>在目标环境上使用恶意镜像创建一个新容器；</li>
+<li>在上一容器内的恶意脚本执行完后，继续使用恶意镜像创建第二个容器。 </li>
+</ol>
+<p>可以编写一个简单的脚本来自动化上述步骤：</p>
+<p><img src="/posts/3535913925/image-20210305170312929.png" alt="image-20210305170312929"></p>
+<p>如上图所示，攻击成功（覆盖kata-agent可能耗时较久）。此时目标宿主机上的/bin目录已经被恶意镜像的根目录覆盖（绑定挂载）。假设此时管理员登录到了宿主机上，执行了一些常用命令，例如ls：</p>
+<p><img src="/posts/3535913925/image-20210305171234660.png" alt="image-20210305171234660"></p>
+<p>由于ls已经被替换为恶意程序，此时，攻击者收到了目标宿主机反弹回来的shell：</p>
+<p><img src="/posts/3535913925/image-20210305171308143.png" alt="image-20210305171308143"></p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>注意事项</strong></p>
+<ul>
+<li>如果在VMWare中搭建测试环境，使用Kata Containers运行容器前需要配置一下vsock[15]：</li>
+</ul>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl stop vmware-tools</span><br><span class="line">sudo modprobe -r vmw_vsock_vmci_transport</span><br><span class="line">sudo modprobe -i vhost_vsock</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li>构建恶意镜像时，使用runC构建会比直接在配置好kata-runtime的环境中快很多。</li>
+<li>事实上，对于攻击者来说，覆盖/bin并非是最好的思路。一方面，他在反弹shell中能够用到的工具会减少——原宿主机上/bin目录下的所有工具都无法使用了；另一方面，攻击者需要管理员的配合（管理员执行ls等命令）才能实现攻击。一种更好的思路是覆盖/lib或/lib64目录并提供恶意的动态链接库[8]，这样既不会影响到/bin目录下的工具（严格来说，可能会影响一些使用到动态链接库的程序），又不需要管理员的配合就可实施攻击，因为许多系统进程（以及kata-runtime）都会自动去调用动态链接库中的函数。</li>
+</ul>
+<h3 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>在了解漏洞原理后，修复思路就显而易见了。修复细节不是本文关注的重点，感兴趣的读者可以参考官方仓库[27][28][29][30]。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>纵观云计算与虚拟化技术发展可以发现，从虚拟机到容器再到安全容器，每一种技术都曾出现过逃逸情况。笔者相信，未来还会不断有新的逃逸方式出现。当然，我们不会因噎废食，科技的进步会在效率和安全性两方面都带来越来越多的增益。但是另一方面，最小权限、纵深防御等安全最佳实践和原则依然有必要贯穿始终。</p>
+<h3 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a><strong>致谢</strong></h3><p>研究过程中，笔者曾就技术细节问题向原漏洞发现者、Palo Alto Networks的高级安全研究员Yuval Avrahami请教，得到其热情友好的帮助，在此向Yuval Avrahami表示真诚的感谢。</p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a><strong>参考文献</strong></h3><p>[1] <a href="https://i.blackhat.com/USA-20/Thursday/us-20-Avrahami-Escaping-Virtualized-Containers.pdf" target="_blank" rel="noopener">https://i.blackhat.com/USA-20/Thursday/us-20-Avrahami-Escaping-Virtualized-Containers.pdf</a><br>[2] <a href="https://katacontainers.io" target="_blank" rel="noopener">https://katacontainers.io</a><br>[3] <a href="https://katacontainers.io/learn/" target="_blank" rel="noopener">https://katacontainers.io/learn/</a><br>[4] <a href="https://gvisor.dev" target="_blank" rel="noopener">https://gvisor.dev</a><br>[5] <a href="https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2023.md" target="_blank" rel="noopener">https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2023.md</a><br>[6] <a href="https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2024.md" target="_blank" rel="noopener">https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2024.md</a><br>[7] <a href="https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2025.md" target="_blank" rel="noopener">https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2025.md</a><br>[8] <a href="https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2026.md" target="_blank" rel="noopener">https://github.com/kata-containers/community/blob/master/VMT/KCSA/KCSA-CVE-2020-2026.md</a><br>[9] <a href="https://docs.docker.com/engine/install/ubuntu/" target="_blank" rel="noopener">https://docs.docker.com/engine/install/ubuntu/</a><br>[10] <a href="https://github.com/kata-containers/runtime/releases/download/1.10.0/kata-static-1.10.0-x86_64.tar.xz" target="_blank" rel="noopener">https://github.com/kata-containers/runtime/releases/download/1.10.0/kata-static-1.10.0-x86_64.tar.xz</a><br>[11] <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-2023" target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2020-2023</a><br>[12] <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-2024" target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2020-2024</a><br>[13] <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-2025" target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2020-2025</a><br>[14] <a href="https://nvd.nist.gov/vuln/detail/CVE-2020-2026" target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2020-2026</a><br>[15] <a href="https://github.com/teawater/documentation/blob/4eee7346655d9c954ab595c05e9f5dad0f5efeda/VSocks.md#system-requirements" target="_blank" rel="noopener">https://github.com/teawater/documentation/blob/4eee7346655d9c954ab595c05e9f5dad0f5efeda/VSocks.md#system-requirements</a><br>[16] <a href="https://github.com/cloud-hypervisor/cloud-hypervisor" target="_blank" rel="noopener">https://github.com/cloud-hypervisor/cloud-hypervisor</a><br>[17] <a href="https://github.com/kata-containers/documentation/tree/master/design" target="_blank" rel="noopener">https://github.com/kata-containers/documentation/tree/master/design</a><br>[18] <a href="https://github.com/opencontainers/runtime-spec" target="_blank" rel="noopener">https://github.com/opencontainers/runtime-spec</a><br>[19] <a href="https://github.com/kata-containers/kata-containers" target="_blank" rel="noopener">https://github.com/kata-containers/kata-containers</a><br>[20] <a href="https://gvisor.dev/docs/" target="_blank" rel="noopener">https://gvisor.dev/docs/</a><br>[21] <a href="https://nvd.nist.gov/vuln/detail/CVE-2019-14271" target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2019-14271</a><br>[22] <a href="https://www.kernel.org/doc/Documentation/cgroup-v1/devices.txt" target="_blank" rel="noopener">https://www.kernel.org/doc/Documentation/cgroup-v1/devices.txt</a><br>[23] <a href="https://man7.org/linux/man-pages/man2/mknod.2.html" target="_blank" rel="noopener">https://man7.org/linux/man-pages/man2/mknod.2.html</a><br>[24] <a href="https://github.com/moby/moby/blob/a24a71c50f34d53710cccaa4d5e5f62169c5e1dc/oci/caps/defaults.go#L4" target="_blank" rel="noopener">https://github.com/moby/moby/blob/a24a71c50f34d53710cccaa4d5e5f62169c5e1dc/oci/caps/defaults.go#L4</a><br>[25] <a href="https://en.wikipedia.org/wiki/Symlink_race" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Symlink_race</a><br>[26] <a href="https://github.com/kata-containers/documentation/blob/master/design/architecture.md" target="_blank" rel="noopener">https://github.com/kata-containers/documentation/blob/master/design/architecture.md</a><br>[27] <a href="https://github.com/kata-containers/agent/pull/792" target="_blank" rel="noopener">https://github.com/kata-containers/agent/pull/792</a><br>[28] <a href="https://github.com/kata-containers/runtime/pull/2477" target="_blank" rel="noopener">https://github.com/kata-containers/runtime/pull/2477</a><br>[29] <a href="https://github.com/kata-containers/runtime/pull/2487" target="_blank" rel="noopener">https://github.com/kata-containers/runtime/pull/2487</a><br>[30] <a href="https://github.com/kata-containers/runtime/pull/2713" target="_blank" rel="noopener">https://github.com/kata-containers/runtime/pull/2713</a> </p>
+<!--
+<div class="poem-wrap">
+  <div class="poem-border poem-left"></div>
+  <div class="poem-border poem-right"></div>
+    <h1>念两句诗</h1>
+    <p id="poem">挑选中...</p>
+    <p id="info">
+
+  <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    jinrishici.load(function(result) {
+      poem.innerHTML = result.data.content
+      info.innerHTML = '【' + result.data.origin.dynasty + '】' + result.data.origin.author + '《' + result.data.origin.title + '》'
+      document.getElementById("poem").value(poem);
+      document.getElementById("info").value(info);  
+  });
+  </script>
+</div>
+-->
+
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script></span>
+      
+    </div>
+
+    <div> <div>
+ 
+<div style="text-align:center;color:#bfbfbf;font-size:16px;"> 
+<span>-------- 本文结束 </span> 
+<i class="fa fa-paw"></i> 
+<span> 感谢阅读 --------
+</span> 
+</div> 
+
+</div>
+ </div>
+    <div>
+        
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+
+  <p><span>本文标题:</span>KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载下)</a></p>
+  <p><span>文章作者:</span>FunctFan</a></p>
+  <p><span>发布时间:</span>2021年03月05日 - 03:12:56</p>
+  <p><span>最后更新:</span>2021年03月05日 - 04:38:37</p>
+  <p><span>原始链接:</span><a href="/posts/3535913925/" title="KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载下)">https://functfan.github.io/posts/3535913925/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/3535913925/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+
+        
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag"><i class="fa fa-tag"></i>漏洞复现</a>
+          
+            <a href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag"><i class="fa fa-tag"></i>KataContainers容器</a>
+          
+            <a href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag"><i class="fa fa-tag"></i>CVE-2020-2023/2024/2025/2026</a>
+          
+            <a href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag"><i class="fa fa-tag"></i>容器逃逸</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2831946175/" rel="prev">
+                <i class="fa fa-chevron-left"></i> weblogic环境部署与远程调试
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2767170740/" rel="next">
+                KataContainers安全容器逃逸-CVE-2020-2023-2024-2025-2026(转载中) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel >
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/timg_wps.png" alt="FunctFan" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">FunctFan</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"> 90后无名小黑 | 北京工业大学</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://blog.csdn.net/RisingFan" target="_blank">
+                  <i class="fa fa-csdn"></i> CSDN
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://functfan.gitbook.io/" target="_blank">
+                  <i class="fa fa-gitbook"></i> GitBook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://bleke.top/" target="_blank">
+                  <i class="fa fa-personpage"></i> PersonPage
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+	<div style="">
+  <canvas id="canvas" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+</div>
+<script>
+(function(){
+
+   var digit=
+    [
+        [
+            [0,0,1,1,1,0,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,0,1,1,0],
+            [0,0,1,1,1,0,0]
+        ],//0
+        [
+            [0,0,0,1,1,0,0],
+            [0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [1,1,1,1,1,1,1]
+        ],//1
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,1,1],
+            [1,1,1,1,1,1,1]
+        ],//2
+        [
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//3
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,1]
+        ],//4
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,1,1,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//5
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//6
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0]
+        ],//7
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//8
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,1,1,0,0,0,0]
+        ],//9
+        [
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0]
+        ]//:
+    ];
+
+var canvas = document.getElementById('canvas');
+
+if(canvas.getContext){
+    var cxt = canvas.getContext('2d');
+    //声明canvas的宽高
+    var H = 100,W = 700;
+    canvas.height = H;
+    canvas.width = W;
+    cxt.fillStyle = '#555555';
+    cxt.fillRect(10,10,50,50);
+
+    //存储时间数据
+    var data = [];
+    //存储运动的小球
+    var balls = [];
+    //设置粒子半径
+    var R = canvas.height/20-1;
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+    })();
+
+    /*生成点阵数字*/
+    function renderDigit(index,num){
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index + j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,0,2*Math.PI);
+                    cxt.closePath();
+                    cxt.fill();
+                }
+            }
+        }
+    }
+
+    /*更新时钟*/
+    function updateDigitTime(){
+        var changeNumArray = [];
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        var NewData = [];
+        NewData.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+        for(var i = data.length-1; i >=0 ; i--){
+            //时间发生变化
+            if(NewData[i] !== data[i]){
+                //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+                changeNumArray.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        }
+        //增加小球
+        for(var i = 0; i< changeNumArray.length; i++){
+            addBalls.apply(this,changeNumArray[i].split('_'));
+        }
+        data = NewData.concat();
+    }
+
+    /*更新小球状态*/
+    function updateBalls(){
+        for(var i = 0; i < balls.length; i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x > W + R || balls[i].y > H + R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    /*增加要运动的小球*/
+    function addBalls(index,num){
+        var numArray = [1,2,3];
+        var colorArray =  ["#3BE","#09C","#A6C","#93C","#9C0","#690","#FB3","#F80","#F44","#C00"];
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    var ball = {
+                        x:14*(R+2)*index + j*2*(R+1)+(R+1),
+                        y:i*2*(R+1)+(R+1),
+                        stepX:Math.floor(Math.random() * 4 -2),
+                        stepY:-2*numArray[Math.floor(Math.random()*numArray.length)],
+                        color:colorArray[Math.floor(Math.random()*colorArray.length)],
+                        disY:1
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+
+    /*渲染*/
+    function render(){
+        //重置画布宽度，达到清空画布的效果
+        canvas.height = 100;
+        //渲染时钟
+        for(var i = 0; i < data.length; i++){
+            renderDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i = 0; i < balls.length; i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,0,2*Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+
+    clearInterval(oTimer);
+    var oTimer = setInterval(function(){
+        //更新时钟
+        updateDigitTime();
+        //更新小球状态
+        updateBalls();
+        //渲染
+        render();
+    },50);
+}
+
+})();
+</script>
+
+
+	
+	<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+	<div class="widget-wrap">
+	    
+	    <div id="myCanvasContainer" class="widget tagcloud">
+	        <canvas width="240" height="240" id="resCanvas" style="width=100%">
+	            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/2019CTF/" rel="tag">2019CTF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/2020%E5%B9%B44%E6%9C%884%E6%97%A5/" rel="tag">2020年4月4日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM%E7%AE%97%E6%B3%95/" rel="tag">ACM算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ApacheDubbo/" rel="tag">ApacheDubbo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bjut-Search2016/" rel="tag">Bjut_Search2016</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-4852-Weblogic-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">CVE-2015-4852,Weblogic,反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag">CVE-2020-2023/2024/2025/2026</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codeforces164/" rel="tag">Codeforces164</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CommonsBeanUtils/" rel="tag">CommonsBeanUtils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultServletm/" rel="tag">DefaultServletm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gopher/" rel="tag">Gopher</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JspServlet/" rel="tag">JspServlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag">KataContainers容器</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RMI/" rel="tag">RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSRF/" rel="tag">SSRF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TPM%E6%90%AD%E5%BB%BA/" rel="tag">TPM搭建</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/XXE%E6%BC%8F%E6%B4%9E/" rel="tag">XXE漏洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dc-1/" rel="tag">dc-1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/h4x0r/" rel="tag">h4x0r</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">java反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/requestURI/" rel="tag">requestURI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vulhub/" rel="tag">vulhub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-T3-JNDI-RMI/" rel="tag">weblogic,T3,JNDI,RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E8%B0%83%E8%AF%95-%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E-%E7%B3%BB%E5%88%97%E6%80%BB%E7%BB%93/" rel="tag">weblogic,基础知识,漏洞分析,调试,历史漏洞,系列总结</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" rel="tag">weblogic,环境部署,远程调试</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">weblogic,补丁分析,序列化与反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E5%9B%BD%E5%93%80%E6%82%BC%E6%97%A5/" rel="tag">全国哀悼日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E9%9D%A2%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" rel="tag">全面大学生信息安全竞赛</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E4%BF%A1%E8%AE%A1%E7%AE%97/" rel="tag">可信计算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag">容器逃逸</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%88%A9%E5%99%A8/" rel="tag">工具利器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag">思想结晶</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag">技术基础</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%B0%E5%86%A0%E8%82%BA%E7%82%8E/" rel="tag">新冠肺炎</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" rel="tag">框架基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%85%E6%98%8E%E8%8A%82/" rel="tag">清明节</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">源代码审计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag">漏洞复现</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" rel="tag">漏洞挖掘</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag">突破口</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%AB%99%E5%85%B3%E9%94%AE%E5%AD%97-%E5%8F%8D%E5%BC%B9shell/" rel="tag">网站关键字,反弹shell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag">网络穿透</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag">透视攻击</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%B6%E6%9C%BA%E5%AE%9E%E6%88%98/" rel="tag">靶机实战</a><span class="tag-list-count">1</span></li></ul>
+	        </canvas>
+	    </div>
+	</div>
+	
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#逃逸复现"><span class="nav-text">逃逸复现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#漏洞修复"><span class="nav-text">漏洞修复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#致谢"><span class="nav-text">致谢</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文献"><span class="nav-text">参考文献</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+    </div>
+  </aside>
+
+
+        
+
+
+
+
+
+<script type="text/javascript" src="//cdn.jsdelivr.net/gh/theme-next/theme-next-three@latest/three-waves.min.js"></script>
+
+
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FunctFan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank" rel="noopener">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+
+
+
+
+  <script async src="/js/cursor/fireworks.js"></script>
+
+
+<!--彩带2.自动飘动-->
+
+    <!-- <script src="https://g.joyinshare.com/hc/piao.js" type="text/javascript"></script> -->
+    <script type="text/javascript" src="/js/ribbon_flow.js"></script>
+
+
+
+
+
+
+
+
+
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
+
+
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+
+
+</body>
+</html>

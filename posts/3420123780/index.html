@@ -1,0 +1,1431 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+    
+
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='/css/fonts-useso/fonts-useso.css' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+    <meta name="description" content=" 90后无名小黑 | 北京工业大学" />
+
+
+
+  <meta name="keywords" content="漏洞复现,KataContainers容器,CVE-2020-2023/2024/2025/2026,容器逃逸," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="极客无影" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="版权声明：本文为「星云实验室 绿盟科技研究通讯」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;q4xJtlO6iFpHQginGvVBDQ 简介在2020年Black hat北美会议上，来自Palo Alto Networks的高级安全研究员Yuval Avrahami分享了利用多个漏洞">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KataContainers安全容器逃逸-CVE-2020-2023&#x2F;2024&#x2F;2025&#x2F;2026(转载上)">
+<meta property="og:url" content="https://functfan.github.io/posts/3420123780/index.html">
+<meta property="og:site_name" content="极客无影">
+<meta property="og:description" content="版权声明：本文为「星云实验室 绿盟科技研究通讯」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：https:&#x2F;&#x2F;mp.weixin.qq.com&#x2F;s&#x2F;q4xJtlO6iFpHQginGvVBDQ 简介在2020年Black hat北美会议上，来自Palo Alto Networks的高级安全研究员Yuval Avrahami分享了利用多个漏洞">
+<meta property="og:image" content="https://functfan.github.io/posts/3420123780/20210303143537.png">
+<meta property="og:image" content="https://functfan.github.io/posts/3420123780/20210303143611.png">
+<meta property="article:published_time" content="2021-03-03T05:59:34.000Z">
+<meta property="article:modified_time" content="2021-03-03T06:51:21.965Z">
+<meta property="article:author" content="FunctFan">
+<meta property="article:tag" content="漏洞复现">
+<meta property="article:tag" content="KataContainers容器">
+<meta property="article:tag" content="CVE-2020-2023&#x2F;2024&#x2F;2025&#x2F;2026">
+<meta property="article:tag" content="容器逃逸">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://functfan.github.io/posts/3420123780/20210303143537.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+.pace .pace-progress {
+    background: #1E92FB; /*进度条颜色*/
+    height: 3px;
+}
+.pace .pace-progress-inner {
+     box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+}
+.pace .pace-activity {
+    border-top-color: #1E92FB;    /*上边框颜色*/
+    border-left-color: #1E92FB;    /*左边框颜色*/
+}
+</style>
+
+  <title> KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载上) | 极客无影 </title>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode" target="_blank" rel="noopener">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;">——善守者藏于九地之下，善攻者动于九天之上，故能自保而全胜也。</span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+	<a href="https://github.com/FunctFan" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载上)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+        
+
+            发表于
+            <time itemprop="dateCreated" datetime="2021-03-03T00:59:34-05:00" content="2021-03-03">
+              2021-03-03 00:59
+            </time>
+          </span>
+
+
+  <span class="post-updated">
+    &nbsp; | &nbsp; 更新于
+    <time itemprop="dateUpdated" datetime="2021-03-03T01:51:21-05:00" content="2021-03-03">
+      2021-03-03
+    </time>
+  </span>
+
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" itemprop="url" rel="index">
+                    <span itemprop="name">容器逃逸</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+	<!--
+          
+            <span id="/posts/3420123780/"class="leancloud_visitors"  data-flag-title="KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载上)">
+            &nbsp; | &nbsp;   
+            阅读次数
+            </span>
+          
+	-->
+
+<span title="文章字数">
+<br/>  文章字数:
+    2,863 字
+</span>
+
+
+<span title="阅读时长">
+ &nbsp; | &nbsp;阅读时长≈
+    11 分钟
+</span>
+
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><br>
+<blockquote class="blockquote-center">
+<p id="hitokoto"></p>
+<script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto" defer=""></script>
+</blockquote>
+
+<p>版权声明：本文为「星云实验室 绿盟科技研究通讯」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。<br>原文链接：<a href="https://mp.weixin.qq.com/s/q4xJtlO6iFpHQginGvVBDQ" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/q4xJtlO6iFpHQginGvVBDQ</a></p>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>在2020年Black hat北美会议上，来自Palo Alto Networks的高级安全研究员Yuval Avrahami分享了利用多个漏洞成功从Kata containers逃逸的议题[1]。</p>
+<p>作为一种轻量级虚拟化技术，传统容器与宿主机共享内核，这意味着系统内核权限提升漏洞往往也可用来实施容器逃逸。为了彻底解决这一问题，在轻量与安全性之间达到较好的平衡，安全容器应运而生。Kata Containers是一种安全容器的具体实现，其他主流的安全容器还有Google推出的gVisor[4]等。</p>
+<p>Kata Containers项目最初由Hyper.sh的runV项目与Intel的Clear Container合并而来，并于2017年开源[2]。它的核心思想是，为每一个容器运行一个独立虚拟机，从而避免其与宿主机共享内核。这样一来，即使攻击者在容器内部成功利用了内核漏洞攻破内核，他依然被限制在虚拟机内部，无法逃逸到宿主机上。Kata Containers在官方介绍中[3]直观地展示了它与传统容器之间的异同： </p>
+<p><img src="/posts/3420123780/20210303143537.png" alt="20210303143537"></p>
+<p>从上图可以得出结论，在不考虑其他因素的情况下，如果Kata Containers内部的攻击者想要逃逸到宿主机上，他必须至少经过两次逃逸——「容器逃逸」和「虚拟机逃逸」，才能达到目的。也就是说，单一的漏洞可能将不再奏效，攻击者需要构建一条漏洞利用链。</p>
+<p>事实上，Yuval Avrahami也是这么做的。他分享的议题中一共涉及四个漏洞：</p>
+<ol>
+<li>CVE-2020-2023：Kata Containers容器不受限地访问虚拟机的根文件系统设备[5]，CVSS 3.x评分为6.3[11]；</li>
+<li>CVE-2020-2024：Kata Containers运行时（runtime）在卸载（unmount）挂载点时存在符号链接解析漏洞，可能允许针对宿主机的拒绝服务攻击[6]，CVSS 3.x评分为6.5[12]；</li>
+<li>CVE-2020-2025：基于Cloud Hypervisor的Kata Containers会将虚拟机文件系统的改动写入到虚拟机镜像文件（在宿主机上）[7]，CVSS 3.x评分为8.8[13]；</li>
+<li>CVE-2020-2026：Kata Containers运行时在挂载（mount）容器根文件系统（rootfs）时存在符号链接解析漏洞，可能允许攻击者在宿主机上执行任意代码[8]，CVSS 3.x评分为8.8[14]。 </li>
+</ol>
+<p>其中，CVE-2020-2024主要会导致拒绝服务攻击，对逃逸帮助不大。逃逸主要依靠其他三个漏洞形成的利用链条来实现。</p>
+<p>这个议题精彩又富有意义。它让我们意识到，即使是采用了独立内核的“安全容器”，也存在逃逸风险。换句话说，安全没有银弹。</p>
+<p>本文将对该议题中的逃逸过程（Container-to-Host）及相关的三个漏洞进行详解和复现。 </p>
+<p>注：</p>
+<ul>
+<li>相关漏洞在新版本Kata Containers中均已得到修复。</li>
+<li>文中涉及到的是Kata Containers 1.x系列版本，2.x有所差异但相关度不大，不再涉及，感兴趣的读者可以参考官方文档[19]。</li>
+<li>后文过程中使用的Kata Containers组件、源码版本如无特殊说明，均为1.10.0。 </li>
+</ul>
+<h3 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h3><h4 id="安全容器"><a href="#安全容器" class="headerlink" title="安全容器"></a><strong>安全容器</strong></h4><p>「安全容器」一词，是相对于传统容器而言的。作为一种虚拟化技术，虽然容器本身已经提供了一定程度上的隔离性，但这种隔离性时不时就会被打破。问题的根源在于，传统容器与宿主机共享内核，内核漏洞势必会直接影响容器的安全性。然而由于内核的复杂度过高等原因，近年来，高危内核漏洞层出不穷。</p>
+<p>那么，为什么不直接使用虚拟机呢？答案很明显，性能和资源开销问题使得传统虚拟机技术在现今很多场景和开发部署模式下并不适用，而这也恰恰是容器技术流行的主要原因之一。因此，人们引入了安全容器，希望在轻量化和安全性上达到较好的平衡。</p>
+<p>随着云原生技术和生态的发展，开源安全容器项目也在陆续增多。下面，我们介绍两种主流、目标一致但原理各异的安全容器项目：Kata Containers和gVisor。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>Kata Containers</strong></p>
+<p>在「简介」部分，我们已经概括了Kata Containers项目的诞生和原理相关信息，这里不再重复。我们来深入了解一下Kata Containers，这对后面的漏洞分析和利用有帮助。Kata Containers符合OCI运行时规范[18]，能够替换runC，与Docker引擎无缝对接，也支持Kubernetes。</p>
+<p>下图[2]清晰展示了Kata Containers的组件及各自的角色位置： </p>
+<p><img src="/posts/3420123780/20210303143611.png" alt="20210303143611"></p>
+<p>我们来分别介绍一下各个组件及其作用：</p>
+<ul>
+<li>runtime：容器运行时，负责处理来自Docker引擎或Kubernetes等上层设施的命令（OCI规范定义）及启动kata-shim，程序名为kata-runtime。</li>
+<li>agent：运行在虚拟机中，与runtime交互，用于管理容器及容器内进程，程序名为kata-agent。</li>
+<li>proxy：负责宿主机与虚拟机之间的通信（对shim、runtime及agent之间的I/O流及信号进行路由），如果宿主机内核支持vsock，则proxy是非必要的，程序名为kata-proxy。</li>
+<li>shim：容器进程收集器，用来监控容器进程并收集、转发I/O流及信号，程序名为kata-shim。</li>
+<li>hypervisor：虚拟机监视器，负责虚拟机的创建、运行、销毁等管理，有多种选择，QEMU、Cloud Hypervisor等。</li>
+<li>虚拟机：由高度优化过的内核和文件系统镜像文件创建而来，负责为容器提供一个更强的隔离环境。 </li>
+</ul>
+<p>欲了解更多关于Kata Containers的内容，可以参考官方文档[3][17]。</p>
+<p><strong>&gt;&gt;&gt;&gt;</strong></p>
+<p><strong>gVisor</strong></p>
+<p>gVisor是由Google开源的一款安全容器，它在实现上与Kata Containers有明显不同。Kata Containers虽然同样避免了容器与宿主机共享内核，但它的思路是提供一个虚拟机，容器与虚拟机共享内核；而gVisor则直接在用户层实现了内核，用来拦截容器内程序对系统API的调用，处理并响应。</p>
+<p>欲了解更多关于gVisor的内容，可以参考官方文档[20]。</p>
+<p><strong>Cloud Hypervisor</strong> </p>
+<p>Cloud Hypervisor是一个开源的虚拟机监视器（VMM），基于KVM运行。该项目专注于在受限硬件基础架构和平台上运行现代云计算工作流。它采用Rust语言实现，基于rust-vmm创建。</p>
+<p>从1.10.0版本起，Kata Containers支持采用Cloud Hypervisor作为它的虚拟机监视器。</p>
+<p>欲了解更多关于Cloud Hypervisor的内容，可以参考官方文档[16]。</p>
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>如「简介」部分所述，从容器到宿主机的逃逸涉及三个漏洞的使用，由「容器逃逸」和「虚拟机逃逸」两部分组成。</p>
+<p>其中，容器逃逸涉及到的漏洞是CVE-2020-2023，虚拟机逃逸涉及到的漏洞是CVE-2020-2025和CVE-2020-2026。其中，前两个是权限控制的问题，最后一个漏洞则是云原生环境下的“常客”——未限制符号链接解析导致的文件系统逃逸问题，类似的漏洞还有CVE-2019-14271[21]等。 </p>
+<p>下面我们分别进行简单分析。</p>
+<p><strong>CVE-2020-2023</strong> </p>
+<p>这个漏洞是典型的权限控制问题——容器内部可以访问并修改虚拟机的文件系统。其根源之一在于，Kata Containers并未通过Device Cgroup[21]限制容器对虚拟机设备的访问，因此容器能够通过创建设备文件的方式来访问到虚拟机设备。</p>
+<p>创建设备文件需要用到mknod系统调用，而mknod需要Capabilities中的CAP_MKNOD权限[23]。那么容器是否拥有这个权限呢？不同引擎的规定不一定相同，但至少默认情况下Docker引擎是支持此权限的[24]： </p>
+<figure class="highlight go"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// moby/oci/caps/defaults.go</span></span><br><span class="line"><span class="keyword">package</span> caps <span class="comment">// import "github.com/docker/docker/oci/caps"</span></span><br><span class="line"><span class="comment">// DefaultCapabilities returns a Linux kernel default capabilities</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DefaultCapabilities</span><span class="params">()</span> []<span class="title">string</span></span> {</span><br><span class="line">  <span class="keyword">return</span> []<span class="keyword">string</span>{</span><br><span class="line">    <span class="string">"CAP_CHOWN"</span>,</span><br><span class="line">    <span class="string">"CAP_DAC_OVERRIDE"</span>,</span><br><span class="line">    <span class="string">"CAP_FSETID"</span>,</span><br><span class="line">    <span class="string">"CAP_FOWNER"</span>,</span><br><span class="line">    <span class="string">"CAP_MKNOD"</span>, <span class="comment">// 容器有此权限！</span></span><br><span class="line">    <span class="string">"CAP_NET_RAW"</span>,</span><br><span class="line">    <span class="string">"CAP_SETGID"</span>,</span><br><span class="line">    <span class="string">"CAP_SETUID"</span>,</span><br><span class="line">    <span class="string">"CAP_SETFCAP"</span>,</span><br><span class="line">    <span class="string">"CAP_SETPCAP"</span>,</span><br><span class="line">    <span class="string">"CAP_NET_BIND_SERVICE"</span>,</span><br><span class="line">    <span class="string">"CAP_SYS_CHROOT"</span>,</span><br><span class="line">    <span class="string">"CAP_KILL"</span>,</span><br><span class="line">    <span class="string">"CAP_AUDIT_WRITE"</span>,</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<p>为了进一步确定，我们可以在Kata Containers创建的容器中来验证一下：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root#</span><span class="bash"> docker run --rm -it ubuntu /bin/bash</span></span><br><span class="line">root@df2cff910fdb:/# grep CapEff /proc/self/status</span><br><span class="line">CapEff:  00000000a80425fb</span><br><span class="line">root@df2cff910fdb:/# exit</span><br><span class="line">exit</span><br><span class="line"><span class="meta">root#</span><span class="bash"> capsh --decode=00000000a80425fb</span></span><br><span class="line">0x00000000a80425fb=cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_mknod,cap_audit_write,cap_setfcap</span><br></pre></td></tr></tbody></table></figure>
+
+<p>首先从容器中/proc/self/status文件获取到Capabilities的具体值，然后对其进行解析。结果显示，容器确实拥有CAP_MKNOD权限。</p>
+<p>既然如此，再结合CVE-2020-2023，我们进一步来尝试下能否在容器内通过创建设备文件来访问、甚至修改设备。</p>
+<p>在存在漏洞的环境中（后文「逃逸复现-环境准备」小节给出了搭建漏洞环境的方法，读者可参考），创建一个容器；在容器内，首先我们需要找到底层虚拟机块设备的设备号，然后创建设备文件。 </p>
+<p>/sys/dev/block/目录下是各种块设备的符号链接，文件名即为目标块设备的主次设备号，我们要找到目标块设备为vda1的符号链接文件名，从而获得主次设备号。</p>
+<p>例如，在笔者的环境下：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@7d30fe24da7e:/# ls -al /sys/dev/block/ | grep vda1</span><br><span class="line">lrwxrwxrwx 1 root root 0 Sep 23 03:16 254:1 -&gt; ../../devices/pci0000:00/0000:00:01.0/virtio0/block/vda/vda1</span><br></pre></td></tr></tbody></table></figure>
+
+<p>找到主设备号为254，次设备号为1。在获取设备号后，即可使用mknod创建设备文件：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mknod --mode 0600 /dev/guest_hd b 254 1</span><br></pre></td></tr></tbody></table></figure>
+
+<p>接着，就可以对该设备进行访问和操作了。这里我们可以借助debugfs工具来实现：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@7d30fe24da7e:/# /sbin/debugfs -w /dev/guest_hd</span><br><span class="line">debugfs 1.45.5 (07-Jan-2020)</span><br><span class="line">debugfs:  ls</span><br><span class="line"> 2  (12) .    2  (12) ..    11  (20) lost+found    12  (16) autofs</span><br><span class="line"> 13  (12) bin    14  (12) boot    15  (12) dev    16  (12) etc</span><br><span class="line"> 21  (12) home    22  (12) lib    23  (16) lib64    24  (16) media</span><br><span class="line"> 25  (12) mnt    26  (12) proc    27  (12) root    28  (12) run</span><br><span class="line"> 29  (12) sbin    30  (12) srv    31  (12) sys    32  (12) tmp</span><br><span class="line"> 33  (12) usr    2061  (3824) var</span><br></pre></td></tr></tbody></table></figure>
+
+<p>果然，漏洞存在时，我们的确能够访问虚拟机文件系统。那么，能否修改呢？可以的，例如，kata-agent就在usr/bin目录下：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">debugfs:  cd usr/bin</span><br><span class="line">debugfs:  ls</span><br><span class="line"> 435  (12) .    33  (12) ..    436  (20) kata-agent    437  (16) ldconfig</span><br><span class="line"> 438  (16) chronyc    439  (16) chronyd    440  (16) capsh</span><br><span class="line"> 441  (16) getcap    442  (16) getpcaps    443  (16) setcap    444  (12) su</span><br><span class="line"> 445  (16) bootctl    446  (16) busctl    447  (20) coredumpctl</span><br></pre></td></tr></tbody></table></figure>
+
+<p>我们可以直接删除它：</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">debugfs:  rm kata-agent</span><br><span class="line"></span><br><span class="line">debugfs:  ls</span><br><span class="line"> 435  (12) .    33  (32) ..    437  (16) ldconfig    438  (16) chronyc</span><br><span class="line"> 439  (16) chronyd    440  (16) capsh    441  (16) getcap</span><br><span class="line"> 442  (16) getpcaps    443  (16) setcap    444  (12) su    445  (16) bootctl</span><br><span class="line"> 446  (16) busctl    447  (20) coredumpctl    448  (12) halt</span><br></pre></td></tr></tbody></table></figure>
+
+<p>可以看到，操作执行成功，kata-agent被删除了。 </p>
+<p>我们能够修改文件系统，说明它以读写模式挂载，这是漏洞根源之二。</p>
+<!--
+<div class="poem-wrap">
+  <div class="poem-border poem-left"></div>
+  <div class="poem-border poem-right"></div>
+    <h1>念两句诗</h1>
+    <p id="poem">挑选中...</p>
+    <p id="info">
+
+  <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    jinrishici.load(function(result) {
+      poem.innerHTML = result.data.content
+      info.innerHTML = '【' + result.data.origin.dynasty + '】' + result.data.origin.author + '《' + result.data.origin.title + '》'
+      document.getElementById("poem").value(poem);
+      document.getElementById("info").value(info);  
+  });
+  </script>
+</div>
+-->
+
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script></span>
+      
+    </div>
+
+    <div> <div>
+ 
+<div style="text-align:center;color:#bfbfbf;font-size:16px;"> 
+<span>-------- 本文结束 </span> 
+<i class="fa fa-paw"></i> 
+<span> 感谢阅读 --------
+</span> 
+</div> 
+
+</div>
+ </div>
+    <div>
+        
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+
+  <p><span>本文标题:</span>KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载上)</a></p>
+  <p><span>文章作者:</span>FunctFan</a></p>
+  <p><span>发布时间:</span>2021年03月03日 - 00:59:34</p>
+  <p><span>最后更新:</span>2021年03月03日 - 01:51:21</p>
+  <p><span>原始链接:</span><a href="/posts/3420123780/" title="KataContainers安全容器逃逸-CVE-2020-2023/2024/2025/2026(转载上)">https://functfan.github.io/posts/3420123780/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/3420123780/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+
+        
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag"><i class="fa fa-tag"></i>漏洞复现</a>
+          
+            <a href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag"><i class="fa fa-tag"></i>KataContainers容器</a>
+          
+            <a href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag"><i class="fa fa-tag"></i>CVE-2020-2023/2024/2025/2026</a>
+          
+            <a href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag"><i class="fa fa-tag"></i>容器逃逸</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/2767170740/" rel="prev">
+                <i class="fa fa-chevron-left"></i> KataContainers安全容器逃逸-CVE-2020-2023-2024-2025-2026(转载中)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/497175673/" rel="next">
+                CVE-2020-15257-containerd容器逃逸-<1.3.9|1.4.3 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel >
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/timg_wps.png" alt="FunctFan" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">FunctFan</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"> 90后无名小黑 | 北京工业大学</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://blog.csdn.net/RisingFan" target="_blank">
+                  <i class="fa fa-csdn"></i> CSDN
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://functfan.gitbook.io/" target="_blank">
+                  <i class="fa fa-gitbook"></i> GitBook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://bleke.top/" target="_blank">
+                  <i class="fa fa-personpage"></i> PersonPage
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+	<div style="">
+  <canvas id="canvas" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+</div>
+<script>
+(function(){
+
+   var digit=
+    [
+        [
+            [0,0,1,1,1,0,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,0,1,1,0],
+            [0,0,1,1,1,0,0]
+        ],//0
+        [
+            [0,0,0,1,1,0,0],
+            [0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [1,1,1,1,1,1,1]
+        ],//1
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,1,1],
+            [1,1,1,1,1,1,1]
+        ],//2
+        [
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//3
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,1]
+        ],//4
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,1,1,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//5
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//6
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0]
+        ],//7
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//8
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,1,1,0,0,0,0]
+        ],//9
+        [
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0]
+        ]//:
+    ];
+
+var canvas = document.getElementById('canvas');
+
+if(canvas.getContext){
+    var cxt = canvas.getContext('2d');
+    //声明canvas的宽高
+    var H = 100,W = 700;
+    canvas.height = H;
+    canvas.width = W;
+    cxt.fillStyle = '#555555';
+    cxt.fillRect(10,10,50,50);
+
+    //存储时间数据
+    var data = [];
+    //存储运动的小球
+    var balls = [];
+    //设置粒子半径
+    var R = canvas.height/20-1;
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+    })();
+
+    /*生成点阵数字*/
+    function renderDigit(index,num){
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index + j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,0,2*Math.PI);
+                    cxt.closePath();
+                    cxt.fill();
+                }
+            }
+        }
+    }
+
+    /*更新时钟*/
+    function updateDigitTime(){
+        var changeNumArray = [];
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        var NewData = [];
+        NewData.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+        for(var i = data.length-1; i >=0 ; i--){
+            //时间发生变化
+            if(NewData[i] !== data[i]){
+                //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+                changeNumArray.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        }
+        //增加小球
+        for(var i = 0; i< changeNumArray.length; i++){
+            addBalls.apply(this,changeNumArray[i].split('_'));
+        }
+        data = NewData.concat();
+    }
+
+    /*更新小球状态*/
+    function updateBalls(){
+        for(var i = 0; i < balls.length; i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x > W + R || balls[i].y > H + R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    /*增加要运动的小球*/
+    function addBalls(index,num){
+        var numArray = [1,2,3];
+        var colorArray =  ["#3BE","#09C","#A6C","#93C","#9C0","#690","#FB3","#F80","#F44","#C00"];
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    var ball = {
+                        x:14*(R+2)*index + j*2*(R+1)+(R+1),
+                        y:i*2*(R+1)+(R+1),
+                        stepX:Math.floor(Math.random() * 4 -2),
+                        stepY:-2*numArray[Math.floor(Math.random()*numArray.length)],
+                        color:colorArray[Math.floor(Math.random()*colorArray.length)],
+                        disY:1
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+
+    /*渲染*/
+    function render(){
+        //重置画布宽度，达到清空画布的效果
+        canvas.height = 100;
+        //渲染时钟
+        for(var i = 0; i < data.length; i++){
+            renderDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i = 0; i < balls.length; i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,0,2*Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+
+    clearInterval(oTimer);
+    var oTimer = setInterval(function(){
+        //更新时钟
+        updateDigitTime();
+        //更新小球状态
+        updateBalls();
+        //渲染
+        render();
+    },50);
+}
+
+})();
+</script>
+
+
+	
+	<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+	<div class="widget-wrap">
+	    
+	    <div id="myCanvasContainer" class="widget tagcloud">
+	        <canvas width="240" height="240" id="resCanvas" style="width=100%">
+	            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/2019CTF/" rel="tag">2019CTF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/2020%E5%B9%B44%E6%9C%884%E6%97%A5/" rel="tag">2020年4月4日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM%E7%AE%97%E6%B3%95/" rel="tag">ACM算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ApacheDubbo/" rel="tag">ApacheDubbo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bjut-Search2016/" rel="tag">Bjut_Search2016</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-4852-Weblogic-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">CVE-2015-4852,Weblogic,反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag">CVE-2020-2023/2024/2025/2026</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codeforces164/" rel="tag">Codeforces164</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CommonsBeanUtils/" rel="tag">CommonsBeanUtils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultServletm/" rel="tag">DefaultServletm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gopher/" rel="tag">Gopher</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JspServlet/" rel="tag">JspServlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag">KataContainers容器</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RMI/" rel="tag">RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSRF/" rel="tag">SSRF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TPM%E6%90%AD%E5%BB%BA/" rel="tag">TPM搭建</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/XXE%E6%BC%8F%E6%B4%9E/" rel="tag">XXE漏洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dc-1/" rel="tag">dc-1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/h4x0r/" rel="tag">h4x0r</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">java反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/requestURI/" rel="tag">requestURI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vulhub/" rel="tag">vulhub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-T3-JNDI-RMI/" rel="tag">weblogic,T3,JNDI,RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E8%B0%83%E8%AF%95-%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E-%E7%B3%BB%E5%88%97%E6%80%BB%E7%BB%93/" rel="tag">weblogic,基础知识,漏洞分析,调试,历史漏洞,系列总结</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" rel="tag">weblogic,环境部署,远程调试</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">weblogic,补丁分析,序列化与反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E5%9B%BD%E5%93%80%E6%82%BC%E6%97%A5/" rel="tag">全国哀悼日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E9%9D%A2%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" rel="tag">全面大学生信息安全竞赛</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E4%BF%A1%E8%AE%A1%E7%AE%97/" rel="tag">可信计算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag">容器逃逸</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%88%A9%E5%99%A8/" rel="tag">工具利器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag">思想结晶</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag">技术基础</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%B0%E5%86%A0%E8%82%BA%E7%82%8E/" rel="tag">新冠肺炎</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" rel="tag">框架基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%85%E6%98%8E%E8%8A%82/" rel="tag">清明节</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">源代码审计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag">漏洞复现</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" rel="tag">漏洞挖掘</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag">突破口</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%AB%99%E5%85%B3%E9%94%AE%E5%AD%97-%E5%8F%8D%E5%BC%B9shell/" rel="tag">网站关键字,反弹shell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag">网络穿透</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag">透视攻击</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%B6%E6%9C%BA%E5%AE%9E%E6%88%98/" rel="tag">靶机实战</a><span class="tag-list-count">1</span></li></ul>
+	        </canvas>
+	    </div>
+	</div>
+	
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#简介"><span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#背景知识"><span class="nav-text">背景知识</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#安全容器"><span class="nav-text">安全容器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#漏洞分析"><span class="nav-text">漏洞分析</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+    </div>
+  </aside>
+
+
+        
+
+
+
+
+
+<script type="text/javascript" src="//cdn.jsdelivr.net/gh/theme-next/theme-next-three@latest/three-waves.min.js"></script>
+
+
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FunctFan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank" rel="noopener">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+
+
+
+
+  <script async src="/js/cursor/fireworks.js"></script>
+
+
+<!--彩带2.自动飘动-->
+
+    <!-- <script src="https://g.joyinshare.com/hc/piao.js" type="text/javascript"></script> -->
+    <script type="text/javascript" src="/js/ribbon_flow.js"></script>
+
+
+
+
+
+
+
+
+
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
+
+
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+
+
+</body>
+</html>

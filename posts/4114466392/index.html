@@ -1,0 +1,1422 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+    
+
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='/css/fonts-useso/fonts-useso.css' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+    <meta name="description" content=" 90后无名小黑 | 北京工业大学" />
+
+
+
+  <meta name="keywords" content="weblogic,补丁分析,序列化与反序列化," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="极客无影" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="前言最近在对Weblogic进行研究，研究过程中需要对weblogic的基础知识有所了解，苦于自己懒又不愿意去查找官方文档以及各类参考文章去总结，为此在查阅了各类资料后，找到了几篇写的比较全的文章，可能是你能找到的最详细的WebLogic安全相关中文文档，由于文章介绍很详细，部分内容其实对自己的研究没什么影响，因此仅从中摘录了对于漏洞复现有关的内容，具体如下，如果有想查看原文的同学可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="weblogic简介及补丁分析方法(转)">
+<meta property="og:url" content="https://functfan.github.io/posts/4114466392/index.html">
+<meta property="og:site_name" content="极客无影">
+<meta property="og:description" content="前言最近在对Weblogic进行研究，研究过程中需要对weblogic的基础知识有所了解，苦于自己懒又不愿意去查找官方文档以及各类参考文章去总结，为此在查阅了各类资料后，找到了几篇写的比较全的文章，可能是你能找到的最详细的WebLogic安全相关中文文档，由于文章介绍很详细，部分内容其实对自己的研究没什么影响，因此仅从中摘录了对于漏洞复现有关的内容，具体如下，如果有想查看原文的同学可以">
+<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622100143458.png">
+<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094713089.png">
+<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094757336.png">
+<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094917345.png">
+<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622100858004.png">
+<meta property="article:published_time" content="2021-06-22T02:31:07.000Z">
+<meta property="article:modified_time" content="2021-06-22T06:04:57.747Z">
+<meta property="article:author" content="FunctFan">
+<meta property="article:tag" content="weblogic,补丁分析,序列化与反序列化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://functfan.github.io/posts/4114466392/image-20210622100143458.png">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+.pace .pace-progress {
+    background: #1E92FB; /*进度条颜色*/
+    height: 3px;
+}
+.pace .pace-progress-inner {
+     box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+}
+.pace .pace-activity {
+    border-top-color: #1E92FB;    /*上边框颜色*/
+    border-left-color: #1E92FB;    /*左边框颜色*/
+}
+</style>
+
+  <title> weblogic简介及补丁分析方法(转) | 极客无影 </title>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode" target="_blank" rel="noopener">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;">——善守者藏于九地之下，善攻者动于九天之上，故能自保而全胜也。</span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+	<a href="https://github.com/FunctFan" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                weblogic简介及补丁分析方法(转)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+        
+
+            发表于
+            <time itemprop="dateCreated" datetime="2021-06-21T22:31:07-04:00" content="2021-06-21">
+              2021-06-21 22:31
+            </time>
+          </span>
+
+
+  <span class="post-updated">
+    &nbsp; | &nbsp; 更新于
+    <time itemprop="dateUpdated" datetime="2021-06-22T02:04:57-04:00" content="2021-06-22">
+      2021-06-22
+    </time>
+  </span>
+
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">技术基础</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+	<!--
+          
+            <span id="/posts/4114466392/"class="leancloud_visitors"  data-flag-title="weblogic简介及补丁分析方法(转)">
+            &nbsp; | &nbsp;   
+            阅读次数
+            </span>
+          
+	-->
+
+<span title="文章字数">
+<br/>  文章字数:
+    2,798 字
+</span>
+
+
+<span title="阅读时长">
+ &nbsp; | &nbsp;阅读时长≈
+    11 分钟
+</span>
+
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><br>
+<blockquote class="blockquote-center">
+<p id="hitokoto"></p>
+<script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto" defer=""></script>
+</blockquote>
+
+<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>最近在对Weblogic进行研究，研究过程中需要对weblogic的基础知识有所了解，苦于自己懒又不愿意去查找官方文档以及各类参考文章去总结，为此在查阅了各类资料后，找到了几篇写的比较全的文章，可能是你能找到的最详细的WebLogic安全相关中文文档，由于文章介绍很详细，部分内容其实对自己的研究没什么影响，因此仅从中摘录了对于漏洞复现有关的内容，具体如下，如果有想查看原文的同学可以通过下方链接直达。不过介绍之前还是有必要声明该文章的来源及出处，防止侵权，在此也感谢各位前辈们在研究过程中付出的点点滴滴和共享的成果，让大家能够在研究的道路上摸清方向！</p>
+<ul>
+<li>WebLogic安全研究报告引用文章说明</li>
+</ul>
+<blockquote>
+<p>版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。</p>
+<p>本文链接：<a href="https://nosec.org/home/detail/2859.html" target="_blank" rel="noopener">https://nosec.org/home/detail/2859.html</a></p>
+<p>来源：<a href="https://mp.weixin.qq.com/s?__biz=MzU5NDgxODU1MQ==&amp;mid=2247485058&amp;idx=1&amp;sn=d22b310acf703a32d938a7087c8e8704&amp;chksm=fe7a221ac90dab0cac2aaed6deebe7c56e316f767e2fb91e44e8e08aaa0a48790b4eefb447df&amp;mpshare=1&amp;scene=1&amp;srcid=&amp;sharer_sharetime=1565607726135&amp;sharer_shareid=37947731a17f1281ace10f1fc77146cf&amp;key=e8e84aec0427272da90fdc17f4bdf02bb340c1eb7a12b95f91e0bd42a37b76b919e3b2d20fdbf79e4f262cbca90cb1e29a91ce86770010f67819219ef5c033a219db24ca7e87f72ed8786fa9ba946908&amp;ascene=1&amp;uin=MjMwMDM5OTYzMg%3D%3D&amp;devicetype=Windows+10&amp;version=62060833&amp;lang=zh_CN&amp;pass_ticket=l1uvYU9tgLWZe8D9eDAO27kX2BaRjKEi4OgpXzqLM1dXvVoo7n38b4y80UnpE3At" target="_blank" rel="noopener">奇安信</a></p>
+<p>本文版权归原作者所有，如有侵权请联系我及时删除</p>
+</blockquote>
+<ul>
+<li>weblogic cve漏洞捡漏指南引用文章说明</li>
+</ul>
+<blockquote>
+<p>版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。</p>
+<p>本文链接：<a href="https://mp.weixin.qq.com/s/HlG_Jd8zu0dR4rQw25hfDg" target="_blank" rel="noopener">weblogic cve漏洞捡漏指南</a></p>
+<p>来源：<a href="https://mp.weixin.qq.com/s/HlG_Jd8zu0dR4rQw25hfDg" target="_blank" rel="noopener">宽字节安全公众号</a></p>
+<p>本文版权归原作者所有，如有侵权请联系我及时删除</p>
+</blockquote>
+<h4 id="Oracle-WebLogic-Server"><a href="#Oracle-WebLogic-Server" class="headerlink" title="Oracle WebLogic Server"></a>Oracle WebLogic Server</h4><p>Oracle WebLogic Server（以下简称WebLogic）是一个可扩展的企业级Java平台（Java EE）应用服务器。其完整实现了Java EE 5.0规范，并且支持部署多种类型的分布式应用程序。</p>
+<p>实际上WebLogic是组成Oracle融合中间件的核心。几乎所有的Oracle融合中间件产品都需要运行WebLogic Server。因此，<strong>本质上，WebLogic Server不是Oracle融合中间件，而是构建或运行Oracle融合中间件的基础，Oracle融合中间件和WebLogic密不可分，却在概念上不相等。</strong></p>
+<h4 id="WebLogic的版本"><a href="#WebLogic的版本" class="headerlink" title="WebLogic的版本"></a>WebLogic的版本</h4><p>WebLogic版本众多，但是现在我们经常见到的只有两个类别：10.x和12.x，这两个大版本也叫WebLogic Server 11g和WebLogic Server 12c。根据Oracle官方下载页面<a href="https://www.oracle.com/technetwork/middleware/weblogic/downloads/wls-for-dev-1703574.html（从下向上看）：" target="_blank" rel="noopener">https://www.oracle.com/technetwork/middleware/weblogic/downloads/wls-for-dev-1703574.html（从下向上看）：</a></p>
+<p>10.x的版本为Oracle WebLogic Server 10.3.6，这个版本也是大家用来做漏洞分析的时候最喜欢拿来用的版本。P牛的vulhub(<a href="https://github.com/vulhub/vulhub)中所有WebLogic漏洞靶场都是根据这个版本搭建的。" target="_blank" rel="noopener">https://github.com/vulhub/vulhub)中所有WebLogic漏洞靶场都是根据这个版本搭建的。</a></p>
+<p>12.x的主要版本有：</p>
+<ul>
+<li>Oracle WebLogic Server 12.1.3</li>
+<li>Oracle WebLogic Server 12.2.1</li>
+<li>Oracle WebLogic Server 12.2.1.1</li>
+<li>Oracle WebLogic Server 12.2.1.2</li>
+<li>Oracle WebLogic Server 12.2.1.3</li>
+<li>Oracle WebLogic Server 12.2.1.4</li>
+</ul>
+<p>值得注意的是，<strong>Oracle WebLogic Server 10.3.6支持的最低JDK版本为JDK1.6， Oracle WebLogic Server 12.1.3支持的最低JDK版本为JDK1.7，Oracle WebLogic Server 12.2.1及以上支持的最低JDK版本为JDK1.8</strong>。因此由于JDK的版本不同，尤其是反序列化漏洞的利用方式会略有不同。同时，<strong>不同的Oracle WebLogic Server版本依赖的组件(jar包)也不尽相同，因此不同的WebLogic版本在反序列化漏洞的利用上可能需要使用不同的Gadget链（反序列化漏洞的利用链条）。</strong>但这些技巧性的东西不是本文的重点，请参考其他文章。如果出现一些PoC在某些时候可以利用，某些时候利用不成功的情况，应考虑到这两点。</p>
+<h4 id="WebLogic的安装"><a href="#WebLogic的安装" class="headerlink" title="WebLogic的安装"></a>WebLogic的安装</h4><p>对于weblogic的安装，因为直接打包为了jar包文件，因此支持跨平台安装，既支持在windows上安装，也支持在linux下安装，windows的安装过程直接图形化界面安装即可，网上也有很多的参考资料，自行查阅相关资料即可安装；对于Linux操作系统，推荐使用WebLogic环境搭建工具，工具地址：<a href="https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文" target="_blank" rel="noopener">https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文</a> <a href="https://functfan.github.io/posts/2831946175/">weblogic环境部署与远程调试</a> 快速搭建和开启远程调试。</p>
+<h4 id="WebLogic漏洞分类"><a href="#WebLogic漏洞分类" class="headerlink" title="WebLogic漏洞分类"></a>WebLogic漏洞分类</h4><p>WebLogic爆出的漏洞以反序列化为主，通常反序列化漏洞也最为严重，官方漏洞评分通常达到9.8。WebLogic反序列化漏洞又可以分为xmlDecoder反序列化漏洞和T3反序列化漏洞。其他漏洞诸如任意文件上传、XXE等等也时有出现。</p>
+<h4 id="WebLogic安全补丁"><a href="#WebLogic安全补丁" class="headerlink" title="WebLogic安全补丁"></a>WebLogic安全补丁</h4><p>WebLogic安全补丁通常发布在Oracle关键补丁程序更新、安全警报和公告 (<a href="https://www.oracle.com/technetwork/topics/security/alerts-086861.html" target="_blank" rel="noopener">https://www.oracle.com/technetwork/topics/security/alerts-086861.html</a>) 页面中。其中分为关键补丁程序更新（CPU）和安全警报（Oracle Security Alert Advisory）。</p>
+<p>关键补丁程序更新为Oracle每个季度初定期发布的更新，通常发布时间为每年1月、4月、7月和10月。安全警报通常为漏洞爆出但距离关键补丁程序更新发布时间较长，临时通过安全警报的方式发布补丁。</p>
+<p>所有补丁的下载均需要Oracle客户支持识别码，也就是只有真正购买了Oracle的产品才能下载。</p>
+<p><img src="/posts/4114466392/image-20210622100143458.png" alt="image-20210622100143458"></p>
+<h5 id="weblogic-补丁分析指南"><a href="#weblogic-补丁分析指南" class="headerlink" title="weblogic 补丁分析指南"></a>weblogic 补丁分析指南</h5><h6 id="1-1-Opatch"><a href="#1-1-Opatch" class="headerlink" title="1.1 Opatch"></a>1.1 Opatch</h6><p>在你挖到漏洞后，最好安装weblogic的最新补丁来校验一下你的exp是否在最新补丁下生效。weblogic使用Opatch来管理补丁。在某些补丁中，补丁包对于Opatch最小版本是有要求，这时候我们需要升级Opatch补丁号为 <code>[28186730: OPATCH 13.9.4.2.4 FOR FMW/WLS 12.2.1.3.0, 12.2.1.4.0 AND 14.1.1.0.0]</code>来解决这个问题</p>
+<p><img src="/posts/4114466392/image-20210622094713089.png" alt="image-20210622094713089"></p>
+<p><a href="https://support.oracle.com/epmos/faces/PatchHome?_adf.ctrl-state=1cdjuh74ay_4&amp;_afrLoop=92240149765348#" target="_blank" rel="noopener">https://support.oracle.com/epmos/faces/PatchHome?_adf.ctrl-state=1cdjuh74ay_4&amp;_afrLoop=92240149765348#</a></p>
+<p>下载后，解压至任意文件夹 Windows 执行下面的命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar opatch_generic.jar -J-Doracle.installer.oh_admin_acl=true -silent oracle_home=&lt;ORACLE_HOME_LOCATION&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>其它系统执行下面的命令</p>
+<figure class="highlight shell"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar &lt;PATCH_HOME&gt;/6880880/opatch_generic.jar -silent oracle_home=&lt;ORACLE_HOME_LOCATION&gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>有不懂的，看压缩包里的Readme</p>
+<h6 id="1-2-Opatch-打补丁"><a href="#1-2-Opatch-打补丁" class="headerlink" title="1.2 Opatch 打补丁"></a>1.2 Opatch 打补丁</h6><p>下载补丁后，解压至任意文件夹即可 </p>
+<p>在Oracle_home 安装目录中，找到Opatch文件夹，执行升级操作即可 Opatch apply 补丁解压的文件夹（注意是最内层文件夹)</p>
+<p><img src="/posts/4114466392/image-20210622094757336.png" alt="image-20210622094757336"></p>
+<h6 id="1-3-下载补丁-需要CSI"><a href="#1-3-下载补丁-需要CSI" class="headerlink" title="1.3 下载补丁(需要CSI)"></a>1.3 下载补丁(需要CSI)</h6><p>我们只关心安全补丁，下面说下怎么下载补丁 </p>
+<p>登录Oracle support网站，找到Patchs&amp;Updates 栏目，点击进去</p>
+<p><img src="/posts/4114466392/image-20210622094917345.png" alt="image-20210622094917345"></p>
+<p>查询条件，自己根据需要构造即可</p>
+<p><img src="/posts/4114466392/image-20210622100858004.png" alt="image-20210622100858004"></p>
+<p>REC的补丁，并且被标记为security，且Generic Platform平台，即是补丁</p>
+<p>注意，oracle每年发布四次安全补丁，安全补丁可以跨版本打，也就是说，老补丁同时也集成在新补丁中，这点一定注意。</p>
+<h5 id="weblogic-补丁分析方法"><a href="#weblogic-补丁分析方法" class="headerlink" title="weblogic 补丁分析方法"></a>weblogic 补丁分析方法</h5><p>weblogic中的补丁，其实是一个个编译好的class文件，我们直接使用idea打开补丁文件夹，就可以利用idea的反编译功能区分析补丁。</p>
+<p>补丁中，每个class文件，都对应weblogic 实际目录中的一个class文件，打补丁你可以认为强行替换weblogic 中相关jar包中的class文件。</p>
+<p>下面讲一下分析要点。对于这种安全补丁中，只有关于weblogic自身的安全问题，才会在这里体现，一般第三方包的安全漏洞，不会在该补丁中。</p>
+<h6 id="1-1-weblogic-黑名单"><a href="#1-1-weblogic-黑名单" class="headerlink" title="1.1 weblogic 黑名单"></a>1.1 weblogic 黑名单</h6><p>直接看<code>files\oracle.wls.jrf.tenancy.common.sharedlib\12.2.1.4.0\wls.common.symbol\modules\com.bea.core.utils.jar\weblogic\utils\io</code> 文件夹下的<code>WeblogicFilterConfig.class</code> 文件</p>
+<p>因为weblogic 的漏洞，绝大多数都是T3协议、IIOP协议的java反序列化漏洞。而weblogic为了修复该漏洞，最简单的办法是设置反序列化黑名单并添加黑名单列表。如果反序列化时遇到的类存在于黑名单中，则中止反序列化过程。</p>
+<p>我们只需要diff黑名单列表，自己研究构造poc即可。有的时候不一定是rce，也有可能是其他问题。</p>
+<h6 id="1-2-其他反序列化类"><a href="#1-2-其他反序列化类" class="headerlink" title="1.2 其他反序列化类"></a>1.2 其他反序列化类</h6><p>如果触发反序列化的类在正常业务中可能需要，或者因为其他原因不能屏蔽，weblogic的修复方法为直接修改相关的类。</p>
+<p>如果一个类在readObject方法中，自己私自调用ObjectInputStream去执行反序列化操作而不是用weblogic提供的FilterInputStream执行反序列化操作，这样的话会导致weblogic的黑名单失效。这也就是反序列化中的反序列化漏洞，这种漏洞在weblogic中挺常见的。（不限于T3协议)<br>我们diff中，可以明显发现weblogic的补丁将ObjectInputStream更改为FilterInputStream。在weblogic中，只有FilterInputStream才会在反序列化的流程中检查黑名单类。<br>然后，我们根据这个类中的参数，自己构造一个类即可。<br>在idea中，覆盖一个类最简单的办法是，在自己的项目中创建一个与被覆盖的类包名相同类名相同的类，然后修改你想要修改的代码即可。例如在这个反序列化中，我要修改<code>writeExternal</code>方法。直接强行替换成cve-2020-2555的gadget。</p>
+<h6 id="1-3-T3反序列化-XXE"><a href="#1-3-T3反序列化-XXE" class="headerlink" title="1.3 T3反序列化 XXE"></a>1.3 T3反序列化 XXE</h6><p>一般情况下该类漏洞都是在继承自Exterinalizable的类 中，在自定义序列过程时，将类的某些字段，作为XML去存储在反序列化的信息中。反序列化时候，读取序列化信息中相关的字符串作为XML去解析。解析的过程中没有考虑到XXE攻击。这次我捡漏的cve就是该类型的漏洞。</p>
+<h4 id="Java序列化、反序列化和反序列化漏洞的概念"><a href="#Java序列化、反序列化和反序列化漏洞的概念" class="headerlink" title="Java序列化、反序列化和反序列化漏洞的概念"></a>Java序列化、反序列化和反序列化漏洞的概念</h4><p>关于Java序列化、反序列化和反序列化漏洞的概念，可参考@gyyyy写的一遍非常详细的文章：《浅析Java序列化和反序列化》(<a href="https://github.com/gyyyy/footprint/blob/master/articles/2019/about-java-serialization-and-deserialization.md)。这篇文章对这些概念做了详细的阐述和分析。我这里只引用一段话来简要说明Java反序列化漏洞的成因：" target="_blank" rel="noopener">https://github.com/gyyyy/footprint/blob/master/articles/2019/about-java-serialization-and-deserialization.md)。这篇文章对这些概念做了详细的阐述和分析。我这里只引用一段话来简要说明Java反序列化漏洞的成因：</a></p>
+<blockquote>
+<p>当服务端允许接收远端数据进行反序列化时，客户端可以提供任意一个服务端存在的目标类的对象 （包括依赖包中的类的对象） 的序列化二进制串，由服务端反序列化成相应对象。如果该对象是由攻击者『精心构造』的恶意对象，而它自定义的readobject()中存在着一些『不安全』的逻辑，那么在对它反序列化时就有可能出现安全问题。</p>
+</blockquote>
+<h4 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h4><ul>
+<li><a href="https://nosec.org/home/detail/2859.html" target="_blank" rel="noopener">https://nosec.org/home/detail/2859.html</a></li>
+<li><a href="https://mp.weixin.qq.com/s/HlG_Jd8zu0dR4rQw25hfDg" target="_blank" rel="noopener">weblogic cve漏洞捡漏指南 (qq.com)</a></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzU5NDgxODU1MQ==&amp;mid=2247485058&amp;idx=1&amp;sn=d22b310acf703a32d938a7087c8e8704&amp;chksm=fe7a221ac90dab0cac2aaed6deebe7c56e316f767e2fb91e44e8e08aaa0a48790b4eefb447df&amp;mpshare=1&amp;scene=1&amp;srcid=&amp;sharer_sharetime=1565607726135&amp;sharer_shareid=37947731a17f1281ace10f1fc77146cf&amp;key=e8e84aec0427272da90fdc17f4bdf02bb340c1eb7a12b95f91e0bd42a37b76b919e3b2d20fdbf79e4f262cbca90cb1e29a91ce86770010f67819219ef5c033a219db24ca7e87f72ed8786fa9ba946908&amp;ascene=1&amp;uin=MjMwMDM5OTYzMg%3D%3D&amp;devicetype=Windows+10&amp;version=62060833&amp;lang=zh_CN&amp;pass_ticket=l1uvYU9tgLWZe8D9eDAO27kX2BaRjKEi4OgpXzqLM1dXvVoo7n38b4y80UnpE3At" target="_blank" rel="noopener">https://mp.weixin.qq.com/s?__biz=MzU5NDgxODU1MQ==&amp;mid=2247485058&amp;idx=1&amp;sn=d22b310acf703a32d938a7087c8e8704&amp;chksm=fe7a221ac90dab0cac2aaed6deebe7c56e316f767e2fb91e44e8e08aaa0a48790b4eefb447df&amp;mpshare=1&amp;scene=1&amp;srcid=&amp;sharer_sharetime=1565607726135&amp;sharer_shareid=37947731a17f1281ace10f1fc77146cf&amp;key=e8e84aec0427272da90fdc17f4bdf02bb340c1eb7a12b95f91e0bd42a37b76b919e3b2d20fdbf79e4f262cbca90cb1e29a91ce86770010f67819219ef5c033a219db24ca7e87f72ed8786fa9ba946908&amp;ascene=1&amp;uin=MjMwMDM5OTYzMg%3D%3D&amp;devicetype=Windows+10&amp;version=62060833&amp;lang=zh_CN&amp;pass_ticket=l1uvYU9tgLWZe8D9eDAO27kX2BaRjKEi4OgpXzqLM1dXvVoo7n38b4y80UnpE3At</a></li>
+</ul>
+<!--
+<div class="poem-wrap">
+  <div class="poem-border poem-left"></div>
+  <div class="poem-border poem-right"></div>
+    <h1>念两句诗</h1>
+    <p id="poem">挑选中...</p>
+    <p id="info">
+
+  <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    jinrishici.load(function(result) {
+      poem.innerHTML = result.data.content
+      info.innerHTML = '【' + result.data.origin.dynasty + '】' + result.data.origin.author + '《' + result.data.origin.title + '》'
+      document.getElementById("poem").value(poem);
+      document.getElementById("info").value(info);  
+  });
+  </script>
+</div>
+-->
+
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script></span>
+      
+    </div>
+
+    <div> <div>
+ 
+<div style="text-align:center;color:#bfbfbf;font-size:16px;"> 
+<span>-------- 本文结束 </span> 
+<i class="fa fa-paw"></i> 
+<span> 感谢阅读 --------
+</span> 
+</div> 
+
+</div>
+ </div>
+    <div>
+        
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+
+  <p><span>本文标题:</span>weblogic简介及补丁分析方法(转)</a></p>
+  <p><span>文章作者:</span>FunctFan</a></p>
+  <p><span>发布时间:</span>2021年06月21日 - 22:31:07</p>
+  <p><span>最后更新:</span>2021年06月22日 - 02:04:57</p>
+  <p><span>原始链接:</span><a href="/posts/4114466392/" title="weblogic简介及补丁分析方法(转)">https://functfan.github.io/posts/4114466392/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/4114466392/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+
+        
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag"><i class="fa fa-tag"></i>weblogic,补丁分析,序列化与反序列化</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/914084023/" rel="prev">
+                <i class="fa fa-chevron-left"></i> weblogicT3协议及T3反序列化漏洞简介
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/754158022/" rel="next">
+                CVE-2015-4852-Weblogic反序列化漏洞复现与分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel >
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/timg_wps.png" alt="FunctFan" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">FunctFan</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"> 90后无名小黑 | 北京工业大学</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://blog.csdn.net/RisingFan" target="_blank">
+                  <i class="fa fa-csdn"></i> CSDN
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://functfan.gitbook.io/" target="_blank">
+                  <i class="fa fa-gitbook"></i> GitBook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://bleke.top/" target="_blank">
+                  <i class="fa fa-personpage"></i> PersonPage
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+	<div style="">
+  <canvas id="canvas" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+</div>
+<script>
+(function(){
+
+   var digit=
+    [
+        [
+            [0,0,1,1,1,0,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,0,1,1,0],
+            [0,0,1,1,1,0,0]
+        ],//0
+        [
+            [0,0,0,1,1,0,0],
+            [0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [1,1,1,1,1,1,1]
+        ],//1
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,1,1],
+            [1,1,1,1,1,1,1]
+        ],//2
+        [
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//3
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,1]
+        ],//4
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,1,1,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//5
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//6
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0]
+        ],//7
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//8
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,1,1,0,0,0,0]
+        ],//9
+        [
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0]
+        ]//:
+    ];
+
+var canvas = document.getElementById('canvas');
+
+if(canvas.getContext){
+    var cxt = canvas.getContext('2d');
+    //声明canvas的宽高
+    var H = 100,W = 700;
+    canvas.height = H;
+    canvas.width = W;
+    cxt.fillStyle = '#555555';
+    cxt.fillRect(10,10,50,50);
+
+    //存储时间数据
+    var data = [];
+    //存储运动的小球
+    var balls = [];
+    //设置粒子半径
+    var R = canvas.height/20-1;
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+    })();
+
+    /*生成点阵数字*/
+    function renderDigit(index,num){
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index + j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,0,2*Math.PI);
+                    cxt.closePath();
+                    cxt.fill();
+                }
+            }
+        }
+    }
+
+    /*更新时钟*/
+    function updateDigitTime(){
+        var changeNumArray = [];
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        var NewData = [];
+        NewData.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+        for(var i = data.length-1; i >=0 ; i--){
+            //时间发生变化
+            if(NewData[i] !== data[i]){
+                //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+                changeNumArray.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        }
+        //增加小球
+        for(var i = 0; i< changeNumArray.length; i++){
+            addBalls.apply(this,changeNumArray[i].split('_'));
+        }
+        data = NewData.concat();
+    }
+
+    /*更新小球状态*/
+    function updateBalls(){
+        for(var i = 0; i < balls.length; i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x > W + R || balls[i].y > H + R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    /*增加要运动的小球*/
+    function addBalls(index,num){
+        var numArray = [1,2,3];
+        var colorArray =  ["#3BE","#09C","#A6C","#93C","#9C0","#690","#FB3","#F80","#F44","#C00"];
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    var ball = {
+                        x:14*(R+2)*index + j*2*(R+1)+(R+1),
+                        y:i*2*(R+1)+(R+1),
+                        stepX:Math.floor(Math.random() * 4 -2),
+                        stepY:-2*numArray[Math.floor(Math.random()*numArray.length)],
+                        color:colorArray[Math.floor(Math.random()*colorArray.length)],
+                        disY:1
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+
+    /*渲染*/
+    function render(){
+        //重置画布宽度，达到清空画布的效果
+        canvas.height = 100;
+        //渲染时钟
+        for(var i = 0; i < data.length; i++){
+            renderDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i = 0; i < balls.length; i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,0,2*Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+
+    clearInterval(oTimer);
+    var oTimer = setInterval(function(){
+        //更新时钟
+        updateDigitTime();
+        //更新小球状态
+        updateBalls();
+        //渲染
+        render();
+    },50);
+}
+
+})();
+</script>
+
+
+	
+	<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+	<div class="widget-wrap">
+	    
+	    <div id="myCanvasContainer" class="widget tagcloud">
+	        <canvas width="240" height="240" id="resCanvas" style="width=100%">
+	            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/2019CTF/" rel="tag">2019CTF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/2020%E5%B9%B44%E6%9C%884%E6%97%A5/" rel="tag">2020年4月4日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM%E7%AE%97%E6%B3%95/" rel="tag">ACM算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ApacheDubbo/" rel="tag">ApacheDubbo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bjut-Search2016/" rel="tag">Bjut_Search2016</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-4852-Weblogic-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">CVE-2015-4852,Weblogic,反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag">CVE-2020-2023/2024/2025/2026</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codeforces164/" rel="tag">Codeforces164</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CommonsBeanUtils/" rel="tag">CommonsBeanUtils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultServletm/" rel="tag">DefaultServletm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gopher/" rel="tag">Gopher</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JspServlet/" rel="tag">JspServlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag">KataContainers容器</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RMI/" rel="tag">RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSRF/" rel="tag">SSRF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TPM%E6%90%AD%E5%BB%BA/" rel="tag">TPM搭建</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/XXE%E6%BC%8F%E6%B4%9E/" rel="tag">XXE漏洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dc-1/" rel="tag">dc-1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/h4x0r/" rel="tag">h4x0r</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">java反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/requestURI/" rel="tag">requestURI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vulhub/" rel="tag">vulhub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-T3-JNDI-RMI/" rel="tag">weblogic,T3,JNDI,RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E8%B0%83%E8%AF%95-%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E-%E7%B3%BB%E5%88%97%E6%80%BB%E7%BB%93/" rel="tag">weblogic,基础知识,漏洞分析,调试,历史漏洞,系列总结</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" rel="tag">weblogic,环境部署,远程调试</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">weblogic,补丁分析,序列化与反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E5%9B%BD%E5%93%80%E6%82%BC%E6%97%A5/" rel="tag">全国哀悼日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E9%9D%A2%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" rel="tag">全面大学生信息安全竞赛</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E4%BF%A1%E8%AE%A1%E7%AE%97/" rel="tag">可信计算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag">容器逃逸</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%88%A9%E5%99%A8/" rel="tag">工具利器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag">思想结晶</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag">技术基础</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%B0%E5%86%A0%E8%82%BA%E7%82%8E/" rel="tag">新冠肺炎</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" rel="tag">框架基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%85%E6%98%8E%E8%8A%82/" rel="tag">清明节</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">源代码审计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag">漏洞复现</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" rel="tag">漏洞挖掘</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag">突破口</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%AB%99%E5%85%B3%E9%94%AE%E5%AD%97-%E5%8F%8D%E5%BC%B9shell/" rel="tag">网站关键字,反弹shell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag">网络穿透</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag">透视攻击</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%B6%E6%9C%BA%E5%AE%9E%E6%88%98/" rel="tag">靶机实战</a><span class="tag-list-count">1</span></li></ul>
+	        </canvas>
+	    </div>
+	</div>
+	
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Oracle-WebLogic-Server"><span class="nav-text">Oracle WebLogic Server</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WebLogic的版本"><span class="nav-text">WebLogic的版本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WebLogic的安装"><span class="nav-text">WebLogic的安装</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WebLogic漏洞分类"><span class="nav-text">WebLogic漏洞分类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WebLogic安全补丁"><span class="nav-text">WebLogic安全补丁</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#weblogic-补丁分析指南"><span class="nav-text">weblogic 补丁分析指南</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-1-Opatch"><span class="nav-text">1.1 Opatch</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#1-2-Opatch-打补丁"><span class="nav-text">1.2 Opatch 打补丁</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#1-3-下载补丁-需要CSI"><span class="nav-text">1.3 下载补丁(需要CSI)</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#weblogic-补丁分析方法"><span class="nav-text">weblogic 补丁分析方法</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1-1-weblogic-黑名单"><span class="nav-text">1.1 weblogic 黑名单</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#1-2-其他反序列化类"><span class="nav-text">1.2 其他反序列化类</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#1-3-T3反序列化-XXE"><span class="nav-text">1.3 T3反序列化 XXE</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java序列化、反序列化和反序列化漏洞的概念"><span class="nav-text">Java序列化、反序列化和反序列化漏洞的概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#参考文章"><span class="nav-text">参考文章</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+    </div>
+  </aside>
+
+
+        
+
+
+
+
+
+<script type="text/javascript" src="//cdn.jsdelivr.net/gh/theme-next/theme-next-three@latest/three-waves.min.js"></script>
+
+
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FunctFan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank" rel="noopener">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+
+
+
+
+  <script async src="/js/cursor/fireworks.js"></script>
+
+
+<!--彩带2.自动飘动-->
+
+    <!-- <script src="https://g.joyinshare.com/hc/piao.js" type="text/javascript"></script> -->
+    <script type="text/javascript" src="/js/ribbon_flow.js"></script>
+
+
+
+
+
+
+
+
+
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
+
+
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+
+
+</body>
+</html>

