@@ -67,19 +67,19 @@
 <td align="center">Java安全相关技术、IDEA调试技巧</td>
 </tr>
 <tr>
-<td align="center"><a href="https://functfan.github.io/posts/4114466392/" target="_blank" rel="noopener">weblogic简介及补丁分析方法(转)</a></td>
+<td align="center"><a href="https://functfan.github.io/posts/4114466392/">weblogic简介及补丁分析方法(转)</a></td>
 <td align="center">weblogic基础及补丁分析</td>
 </tr>
 <tr>
-<td align="center"><a href="https://functfan.github.io/posts/914084023/" target="_blank" rel="noopener">weblogicT3协议及T3反序列化漏洞简介</a></td>
+<td align="center"><a href="https://functfan.github.io/posts/914084023/">weblogicT3协议及T3反序列化漏洞简介</a></td>
 <td align="center">weblogic RMI T3必须知道的知识</td>
 </tr>
 <tr>
-<td align="center"><a href="https://functfan.github.io/posts/2831946175/" target="_blank" rel="noopener">weblogic环境部署与远程调试</a></td>
+<td align="center"><a href="https://functfan.github.io/posts/2831946175/">weblogic环境部署与远程调试</a></td>
 <td align="center">weblogic环境部署与远程调试</td>
 </tr>
 <tr>
-<td align="center"><a href="https://functfan.github.io/posts/754158022/" target="_blank" rel="noopener">CVE-2015-4852-Weblogic反序列化漏洞复现与分析</a></td>
+<td align="center"><a href="https://functfan.github.io/posts/754158022/">CVE-2015-4852-Weblogic反序列化漏洞复现与分析</a></td>
 <td align="center">CVE-2015-4852漏洞复现与分析</td>
 </tr>
 <tr>
@@ -227,8 +227,8 @@
 <td align="center">逻辑与，命令1正确执行后，才会执行命令2</td>
 </tr>
 <tr>
-<td align="center">`</td>
-<td align="center"></td>
+<td align="center"><code>||</code></td>
+<td align="center">逻辑或，命令1<strong>不正确</strong>执行后，才会执行命令2</td>
 </tr>
 </tbody></table>
 <p>还有个<code>|</code>，如<code>127.0.0.1|whoami</code>，回显的是<code>whoami</code>的结果</p>
