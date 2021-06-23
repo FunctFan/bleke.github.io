@@ -52,20 +52,20 @@
 <meta name="description" content="前言最近在对Weblogic进行研究，研究过程中需要对weblogic的基础知识有所了解，苦于自己懒又不愿意去查找官方文档以及各类参考文章去总结，为此在查阅了各类资料后，找到了几篇写的比较全的文章，可能是你能找到的最详细的WebLogic安全相关中文文档，由于文章介绍很详细，部分内容其实对自己的研究没什么影响，因此仅从中摘录了对于漏洞复现有关的内容，具体如下，如果有想查看原文的同学可以">
 <meta property="og:type" content="article">
 <meta property="og:title" content="weblogic简介及补丁分析方法(转)">
-<meta property="og:url" content="https://functfan.github.io/posts/4114466392/index.html">
+<meta property="og:url" content="https://bleke.top/posts/4114466392/index.html">
 <meta property="og:site_name" content="极客无影">
 <meta property="og:description" content="前言最近在对Weblogic进行研究，研究过程中需要对weblogic的基础知识有所了解，苦于自己懒又不愿意去查找官方文档以及各类参考文章去总结，为此在查阅了各类资料后，找到了几篇写的比较全的文章，可能是你能找到的最详细的WebLogic安全相关中文文档，由于文章介绍很详细，部分内容其实对自己的研究没什么影响，因此仅从中摘录了对于漏洞复现有关的内容，具体如下，如果有想查看原文的同学可以">
-<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622100143458.png">
-<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094713089.png">
-<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094757336.png">
-<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622094917345.png">
-<meta property="og:image" content="https://functfan.github.io/posts/4114466392/image-20210622100858004.png">
+<meta property="og:image" content="https://bleke.top/posts/4114466392/image-20210622100143458.png">
+<meta property="og:image" content="https://bleke.top/posts/4114466392/image-20210622094713089.png">
+<meta property="og:image" content="https://bleke.top/posts/4114466392/image-20210622094757336.png">
+<meta property="og:image" content="https://bleke.top/posts/4114466392/image-20210622094917345.png">
+<meta property="og:image" content="https://bleke.top/posts/4114466392/image-20210622100858004.png">
 <meta property="article:published_time" content="2021-06-22T02:31:07.000Z">
 <meta property="article:modified_time" content="2021-06-22T06:04:57.747Z">
 <meta property="article:author" content="FunctFan">
 <meta property="article:tag" content="weblogic,补丁分析,序列化与反序列化">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://functfan.github.io/posts/4114466392/image-20210622100143458.png">
+<meta name="twitter:image" content="https://bleke.top/posts/4114466392/image-20210622100143458.png">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -340,7 +340,7 @@
 <li>Oracle WebLogic Server 12.2.1.4</li>
 </ul>
 <p>值得注意的是，<strong>Oracle WebLogic Server 10.3.6支持的最低JDK版本为JDK1.6， Oracle WebLogic Server 12.1.3支持的最低JDK版本为JDK1.7，Oracle WebLogic Server 12.2.1及以上支持的最低JDK版本为JDK1.8</strong>。因此由于JDK的版本不同，尤其是反序列化漏洞的利用方式会略有不同。同时，<strong>不同的Oracle WebLogic Server版本依赖的组件(jar包)也不尽相同，因此不同的WebLogic版本在反序列化漏洞的利用上可能需要使用不同的Gadget链（反序列化漏洞的利用链条）。</strong>但这些技巧性的东西不是本文的重点，请参考其他文章。如果出现一些PoC在某些时候可以利用，某些时候利用不成功的情况，应考虑到这两点。</p>
-<h4 id="WebLogic的安装"><a href="#WebLogic的安装" class="headerlink" title="WebLogic的安装"></a>WebLogic的安装</h4><p>对于weblogic的安装，因为直接打包为了jar包文件，因此支持跨平台安装，既支持在windows上安装，也支持在linux下安装，windows的安装过程直接图形化界面安装即可，网上也有很多的参考资料，自行查阅相关资料即可安装；对于Linux操作系统，推荐使用WebLogic环境搭建工具，工具地址：<a href="https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文" target="_blank" rel="noopener">https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文</a> <a href="https://functfan.github.io/posts/2831946175/">weblogic环境部署与远程调试</a> 快速搭建和开启远程调试。</p>
+<h4 id="WebLogic的安装"><a href="#WebLogic的安装" class="headerlink" title="WebLogic的安装"></a>WebLogic的安装</h4><p>对于weblogic的安装，因为直接打包为了jar包文件，因此支持跨平台安装，既支持在windows上安装，也支持在linux下安装，windows的安装过程直接图形化界面安装即可，网上也有很多的参考资料，自行查阅相关资料即可安装；对于Linux操作系统，推荐使用WebLogic环境搭建工具，工具地址：<a href="https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文" target="_blank" rel="noopener">https://github.com/QAX-A-Team/WeblogicEnvironment，也可参考我的博文</a> <a href="https://functfan.github.io/posts/2831946175/" target="_blank" rel="noopener">weblogic环境部署与远程调试</a> 快速搭建和开启远程调试。</p>
 <h4 id="WebLogic漏洞分类"><a href="#WebLogic漏洞分类" class="headerlink" title="WebLogic漏洞分类"></a>WebLogic漏洞分类</h4><p>WebLogic爆出的漏洞以反序列化为主，通常反序列化漏洞也最为严重，官方漏洞评分通常达到9.8。WebLogic反序列化漏洞又可以分为xmlDecoder反序列化漏洞和T3反序列化漏洞。其他漏洞诸如任意文件上传、XXE等等也时有出现。</p>
 <h4 id="WebLogic安全补丁"><a href="#WebLogic安全补丁" class="headerlink" title="WebLogic安全补丁"></a>WebLogic安全补丁</h4><p>WebLogic安全补丁通常发布在Oracle关键补丁程序更新、安全警报和公告 (<a href="https://www.oracle.com/technetwork/topics/security/alerts-086861.html" target="_blank" rel="noopener">https://www.oracle.com/technetwork/topics/security/alerts-086861.html</a>) 页面中。其中分为关键补丁程序更新（CPU）和安全警报（Oracle Security Alert Advisory）。</p>
 <p>关键补丁程序更新为Oracle每个季度初定期发布的更新，通常发布时间为每年1月、4月、7月和10月。安全警报通常为漏洞爆出但距离关键补丁程序更新发布时间较长，临时通过安全警报的方式发布补丁。</p>
@@ -452,8 +452,8 @@
   <p><span>文章作者:</span>FunctFan</a></p>
   <p><span>发布时间:</span>2021年06月21日 - 22:31:07</p>
   <p><span>最后更新:</span>2021年06月22日 - 02:04:57</p>
-  <p><span>原始链接:</span><a href="/posts/4114466392/" title="weblogic简介及补丁分析方法(转)">https://functfan.github.io/posts/4114466392/</a>
-    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://functfan.github.io/posts/4114466392/"  aria-label="复制成功！"></i></span>
+  <p><span>原始链接:</span><a href="/posts/4114466392/" title="weblogic简介及补丁分析方法(转)">https://bleke.top/posts/4114466392/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://bleke.top/posts/4114466392/"  aria-label="复制成功！"></i></span>
   </p>
   <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">署名-非商业性使用-禁止演绎 4.0 国际</a> 转载请保留原文链接及作者。</p>  
 </div>
