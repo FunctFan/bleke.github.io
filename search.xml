@@ -211,26 +211,7 @@
 <figure class="highlight bash"><table><tbody><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> %COMPUTERNAME%</span><br><span class="line">你的计算机名</span><br></pre></td></tr></tbody></table></figure>
 
 <p><strong>命令注入：</strong>利用管道符来注入要执行的命令</p>
-<table>
-<thead>
-<tr>
-<th align="center">命令符(linux/win)</th>
-<th align="center">作用</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center"><code>;/&amp;</code></td>
-<td align="center">多个命令顺序执行，无逻辑关系</td>
-</tr>
-<tr>
-<td align="center"><code>&amp;&amp;</code></td>
-<td align="center">逻辑与，命令1正确执行后，才会执行命令2</td>
-</tr>
-<tr>
-<td align="center"><code>||</code></td>
-<td align="center">逻辑或，命令1<strong>不正确</strong>执行后，才会执行命令2</td>
-</tr>
-</tbody></table>
+<p><img src="/posts/1610177997/image-20210623175135552.png" alt="image-20210623175135552"></p>
 <p>还有个<code>|</code>，如<code>127.0.0.1|whoami</code>，回显的是<code>whoami</code>的结果</p>
 <p>利用Ping命令和dnslog结合获取回显结果</p>
 <figure class="highlight swift"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">C</span>:\<span class="type">Windows</span>\<span class="type">System32</span>\cmd.exe /<span class="built_in">c</span> <span class="string">"ping -n 3 test.com || ping -c 3 test.com"</span></span><br><span class="line">/bin/bash -<span class="built_in">c</span> <span class="string">"ping -n 3 test.com || ping -c 3 test.com"</span></span><br></pre></td></tr></tbody></table></figure>
